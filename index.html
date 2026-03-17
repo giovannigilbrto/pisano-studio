@@ -1185,8 +1185,7 @@
           b.price || 0,
           b.specialPrice || '',
           `"${(b.notes || '').replace(/"/g,'""')}"`
-        ].join(',') + '
-';
+        ].join(',') + '\n';
       });
       const blob = new Blob([csv], {type:'text/csv'});
       const url = URL.createObjectURL(blob);
