@@ -1301,6 +1301,8 @@
       const m = memo.match(/(\d+)\s*[人名]/);
       if (m) return parseInt(m[1], 10);
       return '';
+    }
+
     function parseAmountFromMemo(memo) {
       if (!memo) return 0;
       const m = memo.match(/([0-9,]+)\s*円?/);
@@ -1312,8 +1314,6 @@
         return parseInt(m2[1].replace(/,/g, ''), 10) || 0;
       }
       return 0;
-    }
-
     }
 
     function eventToBooking(e) {
@@ -1335,14 +1335,11 @@
       let price = 0;
 
       if (amountParsed) {
-        // メモに金額が書かれている場合は、その金額を優先
         special = amountParsed;
         price = amountParsed;
       } else if (peopleParsed && rounded > 0) {
-        // 人数だけ分かる場合は、時間×人数単価で自動計算
         price = calcPrice(rounded, peopleParsed, 0);
       } else {
-        // 人数も金額も不明な場合は、料金0で読み込み（後から手入力想定）
         special = 0;
         price = 0;
       }
