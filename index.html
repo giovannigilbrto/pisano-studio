@@ -1305,10 +1305,12 @@
 
     function parseAmountFromMemo(memo) {
       if (!memo) return 0;
-      const m = memo.match(/([0-9,]+)\s*円?/);
+      // 「5000円」「5,000 円」など円が明示されている場合のみ金額として扱う
+      const m = memo.match(/([0-9,]+)\s*円/);
       if (m) {
         return parseInt(m[1].replace(/,/g, ''), 10) || 0;
       }
+      // 「¥5000」「¥ 5,000」などの表記
       const m2 = memo.match(/¥\s*([0-9,]+)/);
       if (m2) {
         return parseInt(m2[1].replace(/,/g, ''), 10) || 0;
