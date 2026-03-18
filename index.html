@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>レンタルスタジオ予約管理システム 2.0</title>
+  <title>🐈‍⬛Atelier Pisano Studio</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- 既存アプリ用スタイル -->
@@ -10,8 +10,8 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --primary: #2563eb;
-      --primary-dark: #1e40af;
+      --primary: #c02624;
+      --primary-dark: #8f101d;
       --success: #059669;
       --danger: #dc2626;
       --warning: #ea580c;
@@ -157,6 +157,9 @@
       cursor: pointer;
       transition: all 0.2s;
     }
+
+    .btn-accent { background-color: #f97316; color: white; }
+    .btn-accent:hover { background-color: #ea580c; }
 
     .btn-primary { background-color: var(--primary); color: white; }
     .btn-primary:hover { background-color: var(--primary-dark); }
@@ -359,13 +362,13 @@
 <body>
   <div class="container">
     <header>
-      <h1>🎬 レンタルスタジオ予約管理システム 2.0</h1>
+      <h1>🎬 🐈‍⬛Atelier Pisano Studio</h1>
       <p>カレンダー表示・自動料金計算・重複チェック・特別料金対応</p>
 
       <!-- Googleカレンダー読み込みボタン -->
       <div style="margin-top: 8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-        <button id="gcalLoadBtn" class="btn-success">
-          🔑 Googleカレンダーから当月分を読み込み
+        <button id="gcalLoadBtn" class="btn-accent">
+          📥 Googleカレンダーから当月分を読み込み
         </button>
         <span id="gcalStatus" style="font-size:12px; color:#e5e7eb;"></span>
       </div>
@@ -421,7 +424,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label>用途（任意）</label>
+            <label>メモ（任意）</label>
             <input type="text" id="quickPurpose" placeholder="バンド練習など">
           </div>
           <div class="form-group">
@@ -473,7 +476,7 @@
             <input type="text" id="formName" placeholder="田中太郎">
           </div>
           <div class="form-group">
-            <label>用途（任意）</label>
+            <label>メモ（任意）</label>
             <input type="text" id="formPurpose" placeholder="バンド練習など">
           </div>
           <div class="form-group">
@@ -505,6 +508,7 @@
                   <th>日付</th>
                   <th>時間</th>
                   <th>予約者</th>
+                  <th>メモ</th>
                   <th>料金</th>
                   <th>操作</th>
                 </tr>
@@ -542,7 +546,7 @@
                 <th>時間</th>
                 <th>人数</th>
                 <th>予約者</th>
-                <th>用途</th>
+                <th>メモ</th>
                 <th>料金</th>
                 <th>操作</th>
               </tr>
@@ -856,7 +860,17 @@
           const dn = ['日','月','火','水','木','金','土'][new Date(b.date).getDay()];
           key = dn + '曜日';
         } else if (type === 'date') key = b.date;
-        else if (type === 'week') key = b.date.slice(0,7) + ' 週';
+        else if (type === 'week') {
+          const dt = new Date(b.date);
+          const day = dt.getDay();
+          const diff = (day === 0 ? -6 : 1 - day);
+          const monday = new Date(dt);
+          monday.setDate(dt.getDate() + diff);
+          const y = monday.getFullYear();
+          const m = String(monday.getMonth()+1).padStart(2,'0');
+          const d = String(monday.getDate()).padStart(2,'0');
+          key = `${y}-${m}-${d} 週`;
+        }
         else if (type === 'month') key = b.date.slice(0,7);
 
         if (!groups[key]) groups[key] = 0;
@@ -927,10 +941,12 @@
             <tr>
               <td>${b.date}</td>
               <td>${timeStr}</td>
-              <td>${tbodyId === 'recentTable' ? '' : (b.people || '-')}</td>
+              ${tbodyId === 'recentTable' ? `              <td>${b.name}</td>
+              <td>${b.purpose || ''}</td>
+` : `              <td>${b.people || '-'}</td>
               <td>${b.name}</td>
               <td>${b.purpose || ''}</td>
-              <td><strong>¥${(b.price || 0).toLocaleString()}</strong></td>
+`}              <td><strong>¥${(b.price || 0).toLocaleString()}</strong></td>
               <td>
                 <div class="action-buttons">
                   <button class="btn-warning btn-small" onclick="onEditBooking(${JSON.stringify(b.id)})">✎</button>
@@ -1285,6 +1301,19 @@
       const m = memo.match(/(\d+)\s*[人名]/);
       if (m) return parseInt(m[1], 10);
       return '';
+    function parseAmountFromMemo(memo) {
+      if (!memo) return 0;
+      const m = memo.match(/([0-9,]+)\s*円?/);
+      if (m) {
+        return parseInt(m[1].replace(/,/g, ''), 10) || 0;
+      }
+      const m2 = memo.match(/¥\s*([0-9,]+)/);
+      if (m2) {
+        return parseInt(m2[1].replace(/,/g, ''), 10) || 0;
+      }
+      return 0;
+    }
+
     }
 
     function eventToBooking(e) {
@@ -1298,10 +1327,25 @@
       const title = e.summary || '(無題)';
       const memo  = e.description || '';
 
-      const people = parsePeopleFromMemo(memo) || 1;
-      const special = 0;
+      const peopleParsed = parsePeopleFromMemo(memo);
+      const amountParsed = parseAmountFromMemo(memo);
 
-      const price = calcPrice(rounded, people, special);
+      const people = peopleParsed || '';
+      let special = 0;
+      let price = 0;
+
+      if (amountParsed) {
+        // メモに金額が書かれている場合は、その金額を優先
+        special = amountParsed;
+        price = amountParsed;
+      } else if (peopleParsed && rounded > 0) {
+        // 人数だけ分かる場合は、時間×人数単価で自動計算
+        price = calcPrice(rounded, peopleParsed, 0);
+      } else {
+        // 人数も金額も不明な場合は、料金0で読み込み（後から手入力想定）
+        special = 0;
+        price = 0;
+      }
 
       return {
         id: e.id,
@@ -1317,6 +1361,7 @@
         notes: '',
       };
     }
+}
 
     async function loadCurrentMonthFromCalendar() {
       if (!gapiInited || !gisInited) {
@@ -1334,8 +1379,8 @@
           updateGcalStatus('カレンダーから当月分を取得中…');
 
           const now = new Date();
-          const start = new Date(now.getFullYear(), now.getMonth(), 1);
           const end   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+          const start = new Date(now.getFullYear(), now.getMonth() - 14, 1);
 
           const response = await gapi.client.calendar.events.list({
             calendarId: CALENDAR_ID,
