@@ -265,14 +265,16 @@
     .cal-entries { font-size: 10px; line-height: 1.2; }
 
     .cal-entry {
-      background-color: var(--primary);
-      color: white;
-      padding: 2px 4px;
-      border-radius: 2px;
-      margin: 1px 0;
+      background-color: #e9b800;
+      color: #111827;
+      padding: 3px 6px;
+      border-radius: 3px;
+      margin: 2px 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-size: 12px;
+      font-weight: 600;
     }
 
     .month-nav {
@@ -500,7 +502,7 @@
         </div>
 
         <div class="section">
-          <h2>📋 最近の予約</h2>
+          <h2>📋 今週の予約</h2>
           <div class="table-container">
             <table>
               <thead>
@@ -523,6 +525,11 @@
 
       <div class="section" style="margin-top:20px;">
         <h2>📅 全予約一覧</h2>
+        <div class="month-nav" style="margin-bottom:8px;">
+          <button class="btn-secondary btn-small" id="listPrevMonthBtn">◀ 前月</button>
+          <div class="month-display" id="listMonthDisplay"></div>
+          <button class="btn-secondary btn-small" id="listNextMonthBtn">次月 ▶</button>
+        </div>
         <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
           <select id="filterType">
             <option value="all">すべて表示</option>
@@ -629,8 +636,7 @@
             <select id="analyticsType">
               <option value="user">予約者ごと</option>
               <option value="day">曜日ごと</option>
-              <option value="date">日付ごと</option>
-              <option value="week">週ごと</option>
+                            <option value="week">週ごと</option>
               <option value="month">月ごと</option>
             </select>
           </div>
@@ -659,6 +665,25 @@
       <div class="section" style="margin-top:20px;">
         <h2>📊 詳細集計</h2>
         <div id="analyticsResults" class="summary-grid"></div>
+        <div id="analyticsDetailContainer" style="margin-top:16px; display:none;">
+          <h3 style="font-size:14px; margin-bottom:8px;">選択中: <span id="analyticsDetailLabel"></span></h3>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>日付</th>
+                  <th>時間</th>
+                  <th>予約者</th>
+                  <th>メモ</th>
+                  <th>料金</th>
+                </tr>
+              </thead>
+              <tbody id="analyticsDetailBody">
+                <tr><td colspan="5" class="no-data">グループをクリックすると一覧が表示されます</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -668,6 +693,7 @@
     // ===== 予約データ・設定 =====
     let bookings = [];
     let currentViewDate = new Date();
+    let listViewDate = new Date();
     let editingId = null;
 
     function saveToStorage() {
@@ -839,10 +865,18 @@
       document.getElementById('statAvgPrice').textContent = '¥' + avg.toLocaleString();
     }
 
+    let analyticsCurrentType = 'user';
+    let analyticsCurrentStart = '';
+    let analyticsCurrentEnd = '';
+
     function updateAnalytics() {
+
       const type = document.getElementById('analyticsType').value;
       const start = document.getElementById('analyticStart').value;
       const end = document.getElementById('analyticEnd').value;
+      analyticsCurrentType = type;
+      analyticsCurrentStart = start;
+      analyticsCurrentEnd = end;
       let data = bookings.slice();
       if (start) data = data.filter(b => b.date >= start);
       if (end) data = data.filter(b => b.date <= end);
@@ -898,11 +932,70 @@
         val.textContent = '¥' + value.toLocaleString();
         div.appendChild(lab);
         div.appendChild(val);
+        div.addEventListener('click', ()=>{
+          showAnalyticsDetail(type, label, start, end);
+        });
         res.appendChild(div);
       });
     }
 
-    // ===== テーブル描画 =====
+        function showAnalyticsDetail(type, label, start, end) {
+      let data = bookings.slice();
+      if (start) data = data.filter(b => b.date >= start);
+      if (end) data = data.filter(b => b.date <= end);
+      const rows = [];
+
+      data.forEach(b => {
+        const price = b.price || 0;
+        let key = '';
+        if (type === 'user') {
+          key = b.name || '（無名）';
+        } else if (type === 'day') {
+          const dn = ['日','月','火','水','木','金','土'][new Date(b.date).getDay()];
+          key = dn + '曜日';
+        } else if (type === 'week') {
+          const dt = new Date(b.date);
+          const day = dt.getDay();
+          const diff = (day === 0 ? -6 : 1 - day);
+          const monday = new Date(dt);
+          monday.setDate(dt.getDate() + diff);
+          const y = monday.getFullYear();
+          const m = String(monday.getMonth()+1).padStart(2,'0');
+          const d = String(monday.getDate()).padStart(2,'0');
+          key = `${y}-${m}-${d} 週`;
+        } else if (type === 'month') {
+          key = b.date.slice(0,7);
+        }
+        if (key === label) {
+          const timeStr = b.startTime ? `${b.duration || 0}h (${b.startTime}-${b.endTime})` : `${b.duration || 0}h`;
+          rows.push({
+            date: b.date,
+            timeStr,
+            name: b.name,
+            memo: b.purpose || '',
+            price
+          });
+        }
+      });
+
+      const container = document.getElementById('analyticsDetailContainer');
+      const labelEl = document.getElementById('analyticsDetailLabel');
+      const tbody = document.getElementById('analyticsDetailBody');
+      if (!container || !tbody || !labelEl) return;
+
+      labelEl.textContent = label;
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="no-data">該当する予約がありません</td></tr>';
+      } else {
+        tbody.innerHTML = rows
+          .sort((a,b)=> (a.date + a.timeStr).localeCompare(b.date + b.timeStr))
+          .map(r=>`<tr><td>${r.date}</td><td>${r.timeStr}</td><td>${r.name}</td><td>${r.memo}</td><td><strong>¥${r.price.toLocaleString()}</strong></td></tr>`)
+          .join('');
+      }
+      container.style.display = 'block';
+    }
+
+// ===== テーブル描画 =====
     function renderTables() {
       const filterType = document.getElementById('filterType').value;
       let data = bookings.slice().sort((a,b)=>{
@@ -911,11 +1004,34 @@
         return tb.localeCompare(ta);
       });
 
+      // 今週の範囲（今日を含む月曜〜日曜）
+      const today = new Date();
+      const day = today.getDay();
+      const diffMon = (day === 0 ? -6 : 1 - day);
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + diffMon);
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      const weekStart = formatDate(monday);
+      const weekEnd = formatDate(sunday);
+
+      const recent = bookings
+        .filter(b => b.date >= weekStart && b.date <= weekEnd)
+        .sort((a,b)=> (a.date + (a.startTime||'')).localeCompare(b.date + (b.startTime||'')));
+
+      // 全予約一覧は listViewDate の月だけを基本表示
+      const ym = `${listViewDate.getFullYear()}-${String(listViewDate.getMonth()+1).padStart(2,'0')}`;
+      const listMonthLabel = `${listViewDate.getFullYear()}年 ${listViewDate.getMonth()+1}月`;
+      const listLabelEl = document.getElementById('listMonthDisplay');
+      if (listLabelEl) listLabelEl.textContent = listMonthLabel;
+
       document.getElementById('filterDate').style.display = filterType === 'date' ? 'block' : 'none';
       document.getElementById('filterUser').style.display = filterType === 'user' ? 'block' : 'none';
       document.getElementById('dateRangeFilter').style.display = filterType === 'daterange' ? 'flex' : 'none';
 
-      if (filterType === 'date') {
+      if (filterType === 'all') {
+        data = data.filter(b => b.date.startsWith(ym));
+      } else if (filterType === 'date') {
         const d = document.getElementById('filterDate').value;
         if (d) data = data.filter(b => b.date === d);
       } else if (filterType === 'user') {
@@ -959,7 +1075,7 @@
         }).join('');
       }
 
-      fillBody('recentTable', data.slice(0,10));
+      fillBody('recentTable', recent);
       fillBody('fullBookingTable', data);
 
       updateMonthlySummary();
@@ -1511,6 +1627,21 @@
       const gcalBtn = document.getElementById('gcalLoadBtn');
       if (gcalBtn) {
         gcalBtn.addEventListener('click', loadCurrentMonthFromCalendar);
+      }
+
+      const listPrev = document.getElementById('listPrevMonthBtn');
+      const listNext = document.getElementById('listNextMonthBtn');
+      if (listPrev) {
+        listPrev.addEventListener('click', ()=>{
+          listViewDate.setMonth(listViewDate.getMonth() - 1);
+          renderTables();
+        });
+      }
+      if (listNext) {
+        listNext.addEventListener('click', ()=>{
+          listViewDate.setMonth(listViewDate.getMonth() + 1);
+          renderTables();
+        });
       }
 
       loadFromStorage();
