@@ -1,1664 +1,1316 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>🐈‍⬛Atelier Pisano Studio</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>レンタルスタジオ予約管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-  <!-- 既存アプリ用スタイル -->
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --success: #059669;
+            --danger: #dc2626;
+            --warning: #ea580c;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+        }
 
-    :root {
-      --primary: #c02624;
-      --primary-dark: #8f101d;
-      --success: #059669;
-      --danger: #dc2626;
-      --warning: #ea580c;
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #0f172a;
-      --text-secondary: #64748b;
-      --border: #e2e8f0;
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 12px;
+            line-height: 1.5;
+        }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      padding: 12px;
-      line-height: 1.5;
-    }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
 
-    .container {
-      max-width: 1600px;
-      margin: 0 auto;
-    }
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
 
-    header {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
 
-    header h1 {
-      font-size: 24px;
-      margin-bottom: 4px;
-    }
+        header p {
+            opacity: 0.9;
+            font-size: 13px;
+        }
 
-    header p {
-      opacity: 0.9;
-      font-size: 13px;
-    }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            padding: 0 0 12px 0;
+        }
 
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 12px;
-    }
+        .tab-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
 
-    .tab-btn {
-      padding: 8px 16px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-secondary);
-      border-bottom: 3px solid transparent;
-      transition: all 0.2s;
-    }
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
 
-    .tab-btn.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
-    }
+        .tab-content {
+            display: none;
+        }
 
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+        .tab-content.active {
+            display: block;
+        }
 
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
 
-    @media (max-width: 1200px) {
-      .grid-2 { grid-template-columns: 1fr; }
-    }
+        @media (max-width: 1200px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
 
-    .section {
-      background-color: var(--card);
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      border: 1px solid var(--border);
-    }
+        .section {
+            background-color: var(--card);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+        }
 
-    .section h2 {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 16px;
-      color: var(--primary);
-      padding-bottom: 12px;
-      border-bottom: 2px solid var(--border);
-    }
+        .section h2 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--primary);
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--border);
+        }
 
-    .form-group { margin-bottom: 14px; }
+        .form-group {
+            margin-bottom: 14px;
+        }
 
-    label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      color: var(--text);
-    }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text);
+        }
 
-    input, select, textarea {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 13px;
-      font-family: inherit;
-    }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+        }
 
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-    }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
 
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
 
-    .button-group {
-      display: flex;
-      gap: 8px;
-      margin-top: 14px;
-      flex-wrap: wrap;
-    }
+        .button-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
 
-    button {
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
+        button {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-    .btn-accent { background-color: #e9b800; color: #1f2933; }
-    .btn-accent:hover { background-color: #c49a00; }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
 
-    .btn-primary { background-color: var(--primary); color: white; }
-    .btn-primary:hover { background-color: var(--primary-dark); }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
 
-    .btn-success { background-color: var(--success); color: white; }
-    .btn-success:hover { background-color: #047857; }
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
 
-    .btn-danger { background-color: var(--danger); color: white; }
-    .btn-danger:hover { background-color: #b91c1c; }
+        .btn-success:hover {
+            background-color: #047857;
+        }
 
-    .btn-warning { background-color: var(--warning); color: white; }
-    .btn-warning:hover { background-color: #c2410c; }
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
 
-    .btn-secondary { background-color: var(--text-secondary); color: white; }
-    .btn-secondary:hover { background-color: #475569; }
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
 
-    .btn-small { padding: 5px 10px; font-size: 12px; }
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
 
-    .alert {
-      padding: 10px 12px;
-      border-radius: 6px;
-      margin-top: 8px;
-      font-size: 12px;
-      border-left: 4px solid;
-    }
+        .btn-warning:hover {
+            background-color: #c2410c;
+        }
 
-    .alert-warning {
-      background-color: #fff7ed;
-      color: #92400e;
-      border-left-color: var(--warning);
-    }
+        .btn-secondary {
+            background-color: var(--text-secondary);
+            color: white;
+        }
 
-    .price-display {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      padding: 16px;
-      border-radius: 8px;
-      font-size: 22px;
-      font-weight: bold;
-      text-align: center;
-      margin: 12px 0;
-    }
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
 
-    .stat-card {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      padding: 14px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
 
-    .stat-card.green { background: linear-gradient(135deg, #059669, #047857); }
-    .stat-card.orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            border-left: 4px solid;
+        }
 
-    .stat-label {
-      font-size: 11px;
-      opacity: 0.9;
-      margin-bottom: 4px;
-      font-weight: 600;
-    }
+        .alert-warning {
+            background-color: #fff7ed;
+            color: #92400e;
+            border-left-color: var(--warning);
+        }
 
-    .stat-value { font-size: 22px; font-weight: bold; }
+        .alert-info {
+            background-color: #e0f2fe;
+            color: #0c4a6e;
+            border-left-color: var(--primary);
+        }
 
-    .calendar-wrapper { overflow-x: auto; }
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border-left-color: var(--success);
+        }
 
-    .calendar {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
+        .price-display {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin: 12px 0;
+        }
 
-    .calendar th {
-      background-color: var(--primary);
-      color: white;
-      padding: 8px;
-      text-align: center;
-      font-weight: 600;
-    }
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
 
-    .calendar td {
-      border: 1px solid var(--border);
-      padding: 6px;
-      height: 80px;
-      vertical-align: top;
-      cursor: pointer;
-      position: relative;
-      background-color: var(--card);
-      transition: background-color 0.2s;
-    }
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
 
-    .calendar td:hover { background-color: #f1f5f9; }
-    .calendar td.other-month { background-color: var(--bg); color: var(--text-secondary); }
-    .calendar td.today { background-color: #eff6ff; }
+        .stat-value {
+            font-size: 22px;
+            font-weight: bold;
+        }
 
-    .cal-date {
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 4px;
-      font-size: 11px;
-    }
+        .calendar-wrapper {
+            overflow-x: auto;
+        }
 
-    .cal-entries { font-size: 10px; line-height: 1.2; }
+        .calendar {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
 
-    .cal-entry {
-      background-color: #e9b800;
-      color: #111827;
-      padding: 3px 6px;
-      border-radius: 3px;
-      margin: 2px 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 12px;
-      font-weight: 600;
-    }
+        .calendar th {
+            background-color: var(--primary);
+            color: white;
+            padding: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
 
-    .month-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      gap: 8px;
-    }
+        .calendar td {
+            border: 1px solid var(--border);
+            padding: 6px;
+            height: 80px;
+            vertical-align: top;
+            cursor: pointer;
+            position: relative;
+            background-color: var(--card);
+            transition: background-color 0.2s;
+        }
 
-    .month-display {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-    }
+        .calendar td:hover {
+            background-color: #f1f5f9;
+        }
 
-    .table-container { overflow-x: auto; }
+        .calendar td.other-month {
+            background-color: var(--bg);
+            color: var(--text-secondary);
+        }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
+        .calendar td.today {
+            background-color: #eff6ff;
+        }
 
-    th {
-      background-color: var(--border);
-      padding: 10px;
-      text-align: left;
-      font-weight: 600;
-      color: var(--text);
-      border-bottom: 2px solid var(--border);
-    }
+        .cal-date {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
 
-    td {
-      padding: 10px;
-      border-bottom: 1px solid var(--border);
-    }
+        .cal-entries {
+            font-size: 10px;
+            line-height: 1.2;
+        }
 
-    tr:hover { background-color: var(--bg); }
+        .cal-entry {
+            background-color: var(--primary);
+            color: white;
+            padding: 2px 4px;
+            border-radius: 2px;
+            margin: 1px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
-    .no-data {
-      text-align: center;
-      padding: 24px;
-      color: var(--text-secondary);
-      font-size: 14px;
-    }
+        .table-container {
+            overflow-x: auto;
+        }
 
-    .action-buttons {
-      display: flex;
-      gap: 4px;
-      flex-wrap: wrap;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
 
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px;
-      margin-top: 12px;
-    }
+        th {
+            background-color: var(--border);
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+        }
 
-    .info-box {
-      background-color: #f0f9ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 6px;
-      padding: 12px;
-      margin: 12px 0;
-      font-size: 12px;
-      color: #0c4a6e;
-    }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+        }
 
-    #editInfo {
-      display: none;
-      padding: 8px 10px;
-      background-color: #dbeafe;
-      border: 1px solid #93c5fd;
-      border-radius: 6px;
-      font-size: 12px;
-      color: #0c4a6e;
-      margin-bottom: 10px;
-    }
-  </style>
+        tr:hover {
+            background-color: var(--bg);
+        }
 
-  <!-- Google API クライアントライブラリ -->
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+        .no-data {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .month-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+
+        .month-nav button {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .month-display {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .info-box {
+            background-color: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 12px;
+            color: #0c4a6e;
+        }
+
+        .edit-mode-banner {
+            background-color: #dbeafe;
+            border: 1px solid #93c5fd;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #0c4a6e;
+            display: none;
+        }
+
+        .edit-mode-banner.active {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1> 🐈‍⬛Atelier Pisano Studio</h1>
-      <p>カレンダー表示・自動料金計算・重複チェック・特別料金対応</p>
+    <div class="container">
+        <header>
+            <h1>🎬 レンタルスタジオ予約管理システム</h1>
+            <p>カレンダー、自動計算、重複警告で効率的に予約管理</p>
+        </header>
 
-      <!-- Googleカレンダー読み込みボタン -->
-      <div style="margin-top: 8px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-        <button id="gcalLoadBtn" class="btn-accent">
-          📥 Googleカレンダーから当月分を読み込み
-        </button>
-        <span id="gcalStatus" style="font-size:12px; color:#e5e7eb;"></span>
-      </div>
-    </header>
-
-    <!-- タブ -->
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="calendar">📅 カレンダー</button>
-      <button class="tab-btn" data-tab="booking">📝 予約管理</button>
-      <button class="tab-btn" data-tab="settings">⚙️ 設定</button>
-      <button class="tab-btn" data-tab="analytics">📊 集計分析</button>
-    </div>
-
-    <!-- カレンダータブ -->
-    <div id="calendar" class="tab-content active">
-      <div class="grid-2">
-        <div class="section">
-          <h2>📆 月間カレンダー（月曜始まり）</h2>
-          <div class="month-nav">
-            <button class="btn-secondary btn-small" id="prevMonthBtn">◀ 前月</button>
-            <div class="month-display" id="monthDisplay"></div>
-            <button class="btn-secondary btn-small" id="nextMonthBtn">次月 ▶</button>
-          </div>
-          <div class="calendar-wrapper">
-            <table class="calendar" id="calendarTable"></table>
-          </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'calendar')">📅 カレンダー</button>
+            <button class="tab-btn" onclick="switchTab(event, 'booking')">📝 予約管理</button>
+            <button class="tab-btn" onclick="switchTab(event, 'settings')">⚙️ 設定</button>
+            <button class="tab-btn" onclick="switchTab(event, 'analytics')">📊 集計分析</button>
         </div>
 
-        <div class="section">
-          <h2>⚡ クイック予約追加</h2>
-          <div class="form-group">
-            <label>予約日*</label>
-            <input type="date" id="quickDate">
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>開始時刻*</label>
-              <input type="time" id="quickStart">
-            </div>
-            <div class="form-group">
-              <label>終了時刻*</label>
-              <input type="time" id="quickEnd">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>人数*</label>
-              <input type="number" id="quickPeople" min="1" step="1" placeholder="4">
-            </div>
-            <div class="form-group">
-              <label>予約者名*</label>
-              <input type="text" id="quickName" placeholder="田中太郎">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>メモ（任意）</label>
-            <input type="text" id="quickPurpose" placeholder="バンド練習など">
-          </div>
-          <div class="form-group">
-            <label>特別料金（任意・未入力なら自動計算）</label>
-            <input type="number" id="quickSpecialPrice" step="100" placeholder="例：5000">
-          </div>
-          <div id="quickPriceDisplay" class="price-display">¥0</div>
-          <div id="quickWarning"></div>
-          <div class="button-group">
-            <button class="btn-primary" id="quickAddBtn">✓ 追加</button>
-            <button class="btn-secondary" id="quickClearBtn">クリア</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 予約管理タブ -->
-    <div id="booking" class="tab-content">
-      <div class="grid-2">
-        <div class="section">
-          <h2>📝 予約詳細入力</h2>
-          <div id="editInfo">📝 編集モード：<span id="editLabel"></span></div>
-          <div class="form-group">
-            <label>予約日*</label>
-            <input type="date" id="formDate">
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>開始時刻*</label>
-              <input type="time" id="formStart">
-            </div>
-            <div class="form-group">
-              <label>終了時刻*</label>
-              <input type="time" id="formEnd">
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>使用時間（時間）*</label>
-              <input type="number" id="formDuration" min="0.5" step="0.5" placeholder="例：2.5">
-            </div>
-            <div class="form-group">
-              <label>人数*</label>
-              <input type="number" id="formPeople" min="1" step="1" placeholder="4">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>予約者名*</label>
-            <input type="text" id="formName" placeholder="田中太郎">
-          </div>
-          <div class="form-group">
-            <label>メモ（任意）</label>
-            <input type="text" id="formPurpose" placeholder="バンド練習など">
-          </div>
-          <div class="form-group">
-            <label>特別料金（任意・未入力なら自動計算）</label>
-            <input type="number" id="formSpecialPrice" step="100" placeholder="例：5000">
-          </div>
-          <div class="form-group">
-            <label style="display:flex;align-items:center;gap:6px;">
-              <input type="checkbox" id="formNotesToggle" style="width:auto;">
-              メモを追加
-            </label>
-            <textarea id="formNotes" placeholder="予約に関するメモ" style="display:none; margin-top:8px; min-height:60px;"></textarea>
-          </div>
-          <div id="formPriceDisplay" class="price-display">¥0</div>
-          <div id="formWarning"></div>
-          <div class="button-group">
-            <button class="btn-primary" id="formSaveBtn">✓ 追加</button>
-            <button class="btn-secondary" id="formClearBtn">クリア</button>
-            <button class="btn-secondary" id="formCancelEditBtn" style="display:none;">✕ 編集キャンセル</button>
-          </div>
-        </div>
-
-        <div class="section">
-          <h2>📋 今週の予約</h2>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>日付</th>
-                  <th>時間</th>
-                  <th>予約者</th>
-                  <th>メモ</th>
-                  <th>料金</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody id="recentTable">
-                <tr><td colspan="5" class="no-data">予約がまだありません</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="section" style="margin-top:20px;">
-        <h2>📅 全予約一覧</h2>
-        <div class="month-nav" style="margin-bottom:8px;">
-          <button class="btn-secondary btn-small" id="listPrevMonthBtn">◀ 前月</button>
-          <div class="month-display" id="listMonthDisplay"></div>
-          <button class="btn-secondary btn-small" id="listNextMonthBtn">次月 ▶</button>
-        </div>
-        <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
-          <select id="filterType">
-            <option value="all">すべて表示</option>
-            <option value="date">日付検索</option>
-            <option value="user">予約者検索</option>
-            <option value="daterange">期間検索</option>
-          </select>
-          <input type="date" id="filterDate" style="display:none;">
-          <input type="text" id="filterUser" placeholder="予約者名で検索" style="display:none;">
-          <div id="dateRangeFilter" style="display:none;display:flex;gap:6px;width:100%;">
-            <input type="date" id="filterStart">
-            <span style="align-self:center;">〜</span>
-            <input type="date" id="filterEnd">
-          </div>
-        </div>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>日付</th>
-                <th>時間</th>
-                <th>人数</th>
-                <th>予約者</th>
-                <th>メモ</th>
-                <th>料金</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="fullBookingTable">
-              <tr><td colspan="7" class="no-data">予約がまだありません</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- 設定タブ -->
-    <div id="settings" class="tab-content">
-      <div class="grid-2">
-        <div class="section">
-          <h2>💰 料金設定</h2>
-          <div class="form-group">
-            <label>1人利用（円/時間）*</label>
-            <input type="number" id="rate1" value="1500" step="100">
-          </div>
-          <div class="form-group">
-            <label>2人利用（円/時間）*</label>
-            <input type="number" id="rate2" value="2000" step="100">
-          </div>
-          <div class="form-group">
-            <label>3人利用（円/時間）*</label>
-            <input type="number" id="rate3" value="2400" step="100">
-          </div>
-          <div class="form-group">
-            <label>4人以上（円/時間）*</label>
-            <input type="number" id="rate4" value="3000" step="100">
-          </div>
-          <div class="info-box">
-            <strong>📌 計算方法：</strong><br>
-            人数に応じた時間単価 × 使用時間（時間）<br>
-            特別料金が入力されている場合はそちらを優先
-          </div>
-        </div>
-
-        <div class="section">
-          <h2>📊 当月の集計</h2>
-          <div class="stat-card">
-            <div class="stat-label">当月の総売上</div>
-            <div class="stat-value" id="statMonthlyTotal">¥0</div>
-          </div>
-          <div class="stat-card green">
-            <div class="stat-label">当月の予約数</div>
-            <div class="stat-value" id="statMonthlyCount">0件</div>
-          </div>
-          <div class="stat-card orange">
-            <div class="stat-label">平均客単価</div>
-            <div class="stat-value" id="statAvgPrice">¥0</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section" style="margin-top:20px;">
-        <h2>💾 データ管理</h2>
-        <div class="button-group">
-          <button class="btn-success" id="exportCsvBtn">📥 CSVエクスポート</button>
-          <button class="btn-warning" id="exportJsonBtn">📥 JSONエクスポート</button>
-          <button class="btn-secondary" id="importJsonBtn">📤 JSONインポート</button>
-          <button class="btn-danger" id="clearAllBtn">🗑️ すべて削除</button>
-        </div>
-        <input type="file" id="importFile" accept=".json" style="display:none;">
-        <div class="info-box">
-          ブラウザの localStorage に自動保存されます。<br>
-          JSONエクスポートしておくと、別端末への移行もできます。
-        </div>
-      </div>
-    </div>
-
-    <!-- 集計タブ -->
-    <div id="analytics" class="tab-content">
-      <div class="grid-2">
-        <div class="section">
-          <h2>📈 集計条件</h2>
-          <div class="form-group">
-            <select id="analyticsType">
-              <option value="user">予約者ごと</option>
-              <option value="day">曜日ごと</option>
-                            <option value="week">週ごと</option>
-              <option value="month">月ごと</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>期間（任意）</label>
-            <div class="form-row">
-              <input type="date" id="analyticStart">
-              <input type="date" id="analyticEnd">
-            </div>
-          </div>
-        </div>
-
-        <div class="section">
-          <h2>📊 統計</h2>
-          <div class="stat-card">
-            <div class="stat-label">総売上</div>
-            <div class="stat-value" id="analyticTotal">¥0</div>
-          </div>
-          <div class="stat-card green">
-            <div class="stat-label">総予約数</div>
-            <div class="stat-value" id="analyticCount">0件</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section" style="margin-top:20px;">
-        <h2>📊 詳細集計</h2>
-        <div id="analyticsResults" class="summary-grid"></div>
-        <div id="analyticsDetailContainer" style="margin-top:16px; display:none;">
-          <h3 style="font-size:14px; margin-bottom:8px;">選択中: <span id="analyticsDetailLabel"></span></h3>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>日付</th>
-                  <th>時間</th>
-                  <th>予約者</th>
-                  <th>メモ</th>
-                  <th>料金</th>
-                </tr>
-              </thead>
-              <tbody id="analyticsDetailBody">
-                <tr><td colspan="5" class="no-data">グループをクリックすると一覧が表示されます</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- アプリ本体＋Googleカレンダー連携スクリプト -->
-  <script>
-    // ===== 予約データ・設定 =====
-    let bookings = [];
-    let currentViewDate = new Date();
-    let listViewDate = new Date();
-    let editingId = null;
-
-    function saveToStorage() {
-      try {
-        localStorage.setItem('studioBookings', JSON.stringify(bookings));
-        localStorage.setItem('studioRates', JSON.stringify({
-          rate1: document.getElementById('rate1').value,
-          rate2: document.getElementById('rate2').value,
-          rate3: document.getElementById('rate3').value,
-          rate4: document.getElementById('rate4').value
-        }));
-      } catch (e) {
-        console.warn('localStorage に保存できませんでした', e);
-      }
-    }
-
-    function loadFromStorage() {
-      try {
-        const b = localStorage.getItem('studioBookings');
-        if (b) bookings = JSON.parse(b);
-
-        const r = localStorage.getItem('studioRates');
-        if (r) {
-          const rates = JSON.parse(r);
-          if (rates.rate1) document.getElementById('rate1').value = rates.rate1;
-          if (rates.rate2) document.getElementById('rate2').value = rates.rate2;
-          if (rates.rate3) document.getElementById('rate3').value = rates.rate3;
-          if (rates.rate4) document.getElementById('rate4').value = rates.rate4;
-        }
-      } catch (e) {
-        console.warn('localStorage から読み込めませんでした', e);
-      }
-    }
-
-    function formatDate(d) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-
-    function calcHourlyRate(people) {
-      const r1 = parseInt(document.getElementById('rate1').value) || 1500;
-      const r2 = parseInt(document.getElementById('rate2').value) || 2000;
-      const r3 = parseInt(document.getElementById('rate3').value) || 2400;
-      const r4 = parseInt(document.getElementById('rate4').value) || 3000;
-      if (people === 1) return r1;
-      if (people === 2) return r2;
-      if (people === 3) return r3;
-      return r4;
-    }
-
-    function calcPrice(duration, people, special) {
-      if (special && special > 0) return special;
-      if (!duration || duration <= 0) return 0;
-      const rate = calcHourlyRate(people || 1);
-      return Math.round(duration * rate);
-    }
-
-    function checkOverlap(date, start, end, excludeId = null) {
-      if (!start || !end) return null;
-      const s = new Date(`2000-01-01T${start}`);
-      let e = new Date(`2000-01-01T${end}`);
-      if (e < s) e = new Date(`2000-01-02T${end}`);
-
-      const dayBookings = bookings.filter(b => b.date === date && b.startTime && b.endTime && b.id !== excludeId);
-      for (const b of dayBookings) {
-        const bs = new Date(`2000-01-01T${b.startTime}`);
-        let be = new Date(`2000-01-01T${b.endTime}`);
-        if (be < bs) be = new Date(`2000-01-02T${b.endTime}`);
-        if (!(e <= bs || s >= be)) return b;
-      }
-      return null;
-    }
-
-    // ===== カレンダー描画 =====
-    function renderCalendar() {
-      const year = currentViewDate.getFullYear();
-      const month = currentViewDate.getMonth();
-      const todayStr = formatDate(new Date());
-
-      document.getElementById('monthDisplay').textContent = `${year}年 ${month + 1}月`;
-
-      const firstDay = new Date(year, month, 1);
-      const start = new Date(firstDay);
-      const dow = firstDay.getDay();
-      const offset = dow === 0 ? 6 : dow - 1;
-      start.setDate(start.getDate() - offset);
-
-      const table = document.getElementById('calendarTable');
-      table.innerHTML = '';
-
-      const headRow = document.createElement('tr');
-      ['月','火','水','木','金','土','日'].forEach(d=>{
-        const th = document.createElement('th');
-        th.textContent = d;
-        headRow.appendChild(th);
-      });
-      table.appendChild(headRow);
-
-      let curr = new Date(start);
-      for (let w=0; w<6; w++) {
-        const row = document.createElement('tr');
-        for (let d=0; d<7; d++) {
-          const cell = document.createElement('td');
-          const dateStr = formatDate(curr);
-
-          if (curr.getMonth() !== month) cell.classList.add('other-month');
-          if (dateStr === todayStr) cell.classList.add('today');
-
-          const dateDiv = document.createElement('div');
-          dateDiv.className = 'cal-date';
-          dateDiv.textContent = curr.getDate();
-          cell.appendChild(dateDiv);
-
-          const entriesDiv = document.createElement('div');
-          entriesDiv.className = 'cal-entries';
-          const dayBookings = bookings.filter(b => b.date === dateStr)
-            .sort((a,b)=> (a.startTime||'00:00').localeCompare(b.startTime||'00:00'));
-          dayBookings.forEach(b=>{
-            const eDiv = document.createElement('div');
-            eDiv.className = 'cal-entry';
-            eDiv.textContent = `${b.startTime || '時間未定'} ${b.name}`;
-            eDiv.onclick = (ev)=>{
-              ev.stopPropagation();
-              alert(
-                `予約詳細
-` +
-                `日付: ${b.date}
-` +
-                `時間: ${b.startTime || '未設定'} - ${b.endTime || '未設定'} (${b.duration || 0}h)
-` +
-                `人数: ${b.people || '-'}人
-` +
-                `予約者: ${b.name}
-` +
-                `用途: ${b.purpose || ''}
-` +
-                `料金: ¥${b.price.toLocaleString()}
-` +
-                (b.notes ? `メモ: ${b.notes}` : '')
-              );
-            };
-            entriesDiv.appendChild(eDiv);
-          });
-          cell.appendChild(entriesDiv);
-
-          cell.onclick = ()=>{
-            document.getElementById('quickDate').value = dateStr;
-          };
-
-          row.appendChild(cell);
-          curr.setDate(curr.getDate() + 1);
-        }
-        table.appendChild(row);
-      }
-    }
-
-    // ===== 集計 =====
-    function updateMonthlySummary() {
-      const now = new Date();
-      const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-      const monthBookings = bookings.filter(b => b.date.startsWith(ym));
-      const total = monthBookings.reduce((s,b)=>s + (b.price || 0), 0);
-      const count = monthBookings.length;
-      const avg = count ? Math.round(total / count) : 0;
-      document.getElementById('statMonthlyTotal').textContent = '¥' + total.toLocaleString();
-      document.getElementById('statMonthlyCount').textContent = count + '件';
-      document.getElementById('statAvgPrice').textContent = '¥' + avg.toLocaleString();
-    }
-
-    let analyticsCurrentType = 'user';
-    let analyticsCurrentStart = '';
-    let analyticsCurrentEnd = '';
-
-    function updateAnalytics() {
-
-      const type = document.getElementById('analyticsType').value;
-      const start = document.getElementById('analyticStart').value;
-      const end = document.getElementById('analyticEnd').value;
-      analyticsCurrentType = type;
-      analyticsCurrentStart = start;
-      analyticsCurrentEnd = end;
-      let data = bookings.slice();
-      if (start) data = data.filter(b => b.date >= start);
-      if (end) data = data.filter(b => b.date <= end);
-
-      const groups = {};
-      let total = 0, count = 0;
-
-      data.forEach(b=>{
-        const price = b.price || 0;
-        total += price;
-        count++;
-        let key = '';
-        if (type === 'user') key = b.name || '（無名）';
-        else if (type === 'day') {
-          const dn = ['日','月','火','水','木','金','土'][new Date(b.date).getDay()];
-          key = dn + '曜日';
-        } else if (type === 'date') key = b.date;
-        else if (type === 'week') {
-          const dt = new Date(b.date);
-          const day = dt.getDay();
-          const diff = (day === 0 ? -6 : 1 - day);
-          const monday = new Date(dt);
-          monday.setDate(dt.getDate() + diff);
-          const y = monday.getFullYear();
-          const m = String(monday.getMonth()+1).padStart(2,'0');
-          const d = String(monday.getDate()).padStart(2,'0');
-          key = `${y}-${m}-${d} 週`;
-        }
-        else if (type === 'month') key = b.date.slice(0,7);
-
-        if (!groups[key]) groups[key] = 0;
-        groups[key] += price;
-      });
-
-      document.getElementById('analyticTotal').textContent = '¥' + total.toLocaleString();
-      document.getElementById('analyticCount').textContent = count + '件';
-
-      const res = document.getElementById('analyticsResults');
-      res.innerHTML = '';
-      const entries = Object.entries(groups).sort((a,b)=>b[1]-a[1]);
-      if (!entries.length) {
-        res.innerHTML = '<p class="no-data">データがありません</p>';
-        return;
-      }
-      entries.forEach(([label, value])=>{
-        const div = document.createElement('div');
-        div.className = 'stat-card';
-        const lab = document.createElement('div');
-        lab.className = 'stat-label';
-        lab.textContent = label;
-        const val = document.createElement('div');
-        val.className = 'stat-value';
-        val.textContent = '¥' + value.toLocaleString();
-        div.appendChild(lab);
-        div.appendChild(val);
-        div.addEventListener('click', ()=>{
-          showAnalyticsDetail(type, label, start, end);
-        });
-        res.appendChild(div);
-      });
-    }
-
-        function showAnalyticsDetail(type, label, start, end) {
-      let data = bookings.slice();
-      if (start) data = data.filter(b => b.date >= start);
-      if (end) data = data.filter(b => b.date <= end);
-      const rows = [];
-
-      data.forEach(b => {
-        const price = b.price || 0;
-        let key = '';
-        if (type === 'user') {
-          key = b.name || '（無名）';
-        } else if (type === 'day') {
-          const dn = ['日','月','火','水','木','金','土'][new Date(b.date).getDay()];
-          key = dn + '曜日';
-        } else if (type === 'week') {
-          const dt = new Date(b.date);
-          const day = dt.getDay();
-          const diff = (day === 0 ? -6 : 1 - day);
-          const monday = new Date(dt);
-          monday.setDate(dt.getDate() + diff);
-          const y = monday.getFullYear();
-          const m = String(monday.getMonth()+1).padStart(2,'0');
-          const d = String(monday.getDate()).padStart(2,'0');
-          key = `${y}-${m}-${d} 週`;
-        } else if (type === 'month') {
-          key = b.date.slice(0,7);
-        }
-        if (key === label) {
-          const timeStr = b.startTime ? `${b.duration || 0}h (${b.startTime}-${b.endTime})` : `${b.duration || 0}h`;
-          rows.push({
-            date: b.date,
-            timeStr,
-            name: b.name,
-            memo: b.purpose || '',
-            price
-          });
-        }
-      });
-
-      const container = document.getElementById('analyticsDetailContainer');
-      const labelEl = document.getElementById('analyticsDetailLabel');
-      const tbody = document.getElementById('analyticsDetailBody');
-      if (!container || !tbody || !labelEl) return;
-
-      labelEl.textContent = label;
-      if (!rows.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="no-data">該当する予約がありません</td></tr>';
-      } else {
-        tbody.innerHTML = rows
-          .sort((a,b)=> (a.date + a.timeStr).localeCompare(b.date + b.timeStr))
-          .map(r=>`<tr><td>${r.date}</td><td>${r.timeStr}</td><td>${r.name}</td><td>${r.memo}</td><td><strong>¥${r.price.toLocaleString()}</strong></td></tr>`)
-          .join('');
-      }
-      container.style.display = 'block';
-    }
-
-// ===== テーブル描画 =====
-    function renderTables() {
-      const filterType = document.getElementById('filterType').value;
-      let data = bookings.slice().sort((a,b)=>{
-        const ta = a.date + 'T' + (a.startTime || '00:00');
-        const tb = b.date + 'T' + (b.startTime || '00:00');
-        return tb.localeCompare(ta);
-      });
-
-      // 今週の範囲（今日を含む月曜〜日曜）
-      const today = new Date();
-      const day = today.getDay();
-      const diffMon = (day === 0 ? -6 : 1 - day);
-      const monday = new Date(today);
-      monday.setDate(today.getDate() + diffMon);
-      const sunday = new Date(monday);
-      sunday.setDate(monday.getDate() + 6);
-      const weekStart = formatDate(monday);
-      const weekEnd = formatDate(sunday);
-
-      const recent = bookings
-        .filter(b => b.date >= weekStart && b.date <= weekEnd)
-        .sort((a,b)=> (a.date + (a.startTime||'')).localeCompare(b.date + (b.startTime||'')));
-
-      // 全予約一覧は listViewDate の月だけを基本表示
-      const ym = `${listViewDate.getFullYear()}-${String(listViewDate.getMonth()+1).padStart(2,'0')}`;
-      const listMonthLabel = `${listViewDate.getFullYear()}年 ${listViewDate.getMonth()+1}月`;
-      const listLabelEl = document.getElementById('listMonthDisplay');
-      if (listLabelEl) listLabelEl.textContent = listMonthLabel;
-
-      document.getElementById('filterDate').style.display = filterType === 'date' ? 'block' : 'none';
-      document.getElementById('filterUser').style.display = filterType === 'user' ? 'block' : 'none';
-      document.getElementById('dateRangeFilter').style.display = filterType === 'daterange' ? 'flex' : 'none';
-
-      if (filterType === 'all') {
-        data = data.filter(b => b.date.startsWith(ym));
-      } else if (filterType === 'date') {
-        const d = document.getElementById('filterDate').value;
-        if (d) data = data.filter(b => b.date === d);
-      } else if (filterType === 'user') {
-        const u = document.getElementById('filterUser').value.trim();
-        if (u) data = data.filter(b => (b.name || '').includes(u));
-      } else if (filterType === 'daterange') {
-        const s = document.getElementById('filterStart').value;
-        const e = document.getElementById('filterEnd').value;
-        if (s) data = data.filter(b => b.date >= s);
-        if (e) data = data.filter(b => b.date <= e);
-      }
-
-      function fillBody(tbodyId, rows) {
-        const tbody = document.getElementById(tbodyId);
-        if (!rows.length) {
-          const col = tbodyId === 'recentTable' ? 5 : 7;
-          tbody.innerHTML = `<tr><td colspan="${col}" class="no-data">該当する予約がありません</td></tr>`;
-          return;
-        }
-        tbody.innerHTML = rows.map(b=>{
-          const timeStr = b.startTime ? `${b.duration || 0}h (${b.startTime}-${b.endTime})` : `${b.duration || 0}h`;
-          return `
-            <tr>
-              <td>${b.date}</td>
-              <td>${timeStr}</td>
-              ${tbodyId === 'recentTable' ? `              <td>${b.name}</td>
-              <td>${b.purpose || ''}</td>
-` : `              <td>${b.people || '-'}</td>
-              <td>${b.name}</td>
-              <td>${b.purpose || ''}</td>
-`}              <td><strong>¥${(b.price || 0).toLocaleString()}</strong></td>
-              <td>
-                <div class="action-buttons">
-                  <button class="btn-warning btn-small" onclick="onEditBooking(${JSON.stringify(b.id)})">✎</button>
-                  <button class="btn-secondary btn-small" onclick="onCopyBooking(${JSON.stringify(b.id)})">📋</button>
-                  <button class="btn-danger btn-small" onclick="onDeleteBooking(${JSON.stringify(b.id)})">削除</button>
+        <!-- カレンダータブ -->
+        <div id="calendar-tab" class="tab-content active">
+            <div class="grid-2">
+                <div class="section">
+                    <h2>📆 月間カレンダー（月曜始まり）</h2>
+                    <div class="month-nav">
+                        <button class="btn-secondary btn-small" onclick="prevMonth()">◀ 前月</button>
+                        <div class="month-display" id="monthDisplay"></div>
+                        <button class="btn-secondary btn-small" onclick="nextMonth()">次月 ▶</button>
+                    </div>
+                    <div class="calendar-wrapper">
+                        <table class="calendar" id="calendarTable"></table>
+                    </div>
                 </div>
-              </td>
-            </tr>
-          `;
-        }).join('');
-      }
 
-      fillBody('recentTable', recent);
-      fillBody('fullBookingTable', data);
+                <div class="section">
+                    <h2>⚡ クイック予約追加</h2>
+                    <div class="form-group">
+                        <label>予約日*</label>
+                        <input type="date" id="quickDate" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>開始時刻*</label>
+                            <input type="time" id="quickStart" required>
+                        </div>
+                        <div class="form-group">
+                            <label>終了時刻*</label>
+                            <input type="time" id="quickEnd" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>人数*</label>
+                            <input type="number" id="quickPeople" min="1" step="1" placeholder="4" required>
+                        </div>
+                        <div class="form-group">
+                            <label>予約者名*</label>
+                            <input type="text" id="quickName" placeholder="田中太郎" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>用途（オプション）</label>
+                        <input type="text" id="quickPurpose" placeholder="バンド練習">
+                    </div>
+                    <div class="form-group">
+                        <label>料金（未入力なら自動計算）</label>
+                        <input type="number" id="quickSpecialPrice" placeholder="¥0" step="100">
+                    </div>
+                    <div id="quickPriceDisplay" class="price-display">¥0</div>
+                    <div id="quickWarning"></div>
+                    <div class="button-group">
+                        <button class="btn-primary" onclick="addQuickBooking()">✓ 追加</button>
+                        <button class="btn-secondary" onclick="clearQuickForm()">クリア</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-      updateMonthlySummary();
-      saveToStorage();
-    }
+        <!-- 予約管理タブ -->
+        <div id="booking-tab" class="tab-content">
+            <div class="grid-2">
+                <div class="section">
+                    <h2>📝 予約詳細入力</h2>
+                    <div id="editModeBanner" class="edit-mode-banner">
+                        📝 編集モード中: <span id="editingBookingInfo"></span>
+                    </div>
+                    <div class="form-group">
+                        <label>予約日*</label>
+                        <input type="date" id="formDate" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>開始時刻*</label>
+                            <input type="time" id="formStart" required>
+                        </div>
+                        <div class="form-group">
+                            <label>終了時刻*</label>
+                            <input type="time" id="formEnd" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>使用時間（時間）*</label>
+                            <input type="number" id="formDuration" min="0.5" step="0.5" placeholder="例：2.5" required>
+                        </div>
+                        <div class="form-group">
+                            <label>人数*</label>
+                            <input type="number" id="formPeople" min="1" step="1" placeholder="4" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>予約者名*</label>
+                        <input type="text" id="formName" placeholder="田中太郎" required>
+                    </div>
+                    <div class="form-group">
+                        <label>用途（オプション）</label>
+                        <input type="text" id="formPurpose" placeholder="バンド練習">
+                    </div>
+                    <div class="form-group">
+                        <label>特別料金（未入力なら自動計算）</label>
+                        <input type="number" id="formSpecialPrice" placeholder="¥0" step="100">
+                    </div>
+                    <div id="formPriceDisplay" class="price-display">¥0</div>
+                    <div id="formWarning"></div>
+                    <div class="button-group">
+                        <button class="btn-primary" id="formSubmitBtn" onclick="addDetailBooking()">✓ 追加</button>
+                        <button class="btn-secondary" onclick="clearDetailForm()">クリア</button>
+                        <button class="btn-secondary" id="cancelEditBtn" style="display: none;" onclick="cancelEdit()">✕ キャンセル</button>
+                    </div>
+                </div>
 
-    // ===== 予約詳細フォーム =====
-    function clearDetailForm(keepDate = false) {
-      const today = formatDate(new Date());
-      if (!keepDate) document.getElementById('formDate').value = today;
-      document.getElementById('formStart').value = '';
-      document.getElementById('formEnd').value = '';
-      document.getElementById('formDuration').value = '';
-      document.getElementById('formPeople').value = '';
-      document.getElementById('formName').value = '';
-      document.getElementById('formPurpose').value = '';
-      document.getElementById('formSpecialPrice').value = '';
-      document.getElementById('formNotesToggle').checked = false;
-      document.getElementById('formNotes').style.display = 'none';
-      document.getElementById('formNotes').value = '';
-      document.getElementById('formPriceDisplay').textContent = '¥0';
-      document.getElementById('formWarning').innerHTML = '';
-      editingId = null;
-      document.getElementById('editInfo').style.display = 'none';
-      document.getElementById('formSaveBtn').textContent = '✓ 追加';
-      document.getElementById('formCancelEditBtn').style.display = 'none';
-    }
+                <div class="section">
+                    <h2>📋 最近の予約</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>日付</th>
+                                    <th>時間</th>
+                                    <th>予約者</th>
+                                    <th>料金</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentTable">
+                                <tr><td colspan="5" class="no-data">予約がまだありません</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-    function computeDurationFromTimes(start, end) {
-      if (!start || !end) return 0;
-      const s = new Date(`2000-01-01T${start}`);
-      let e = new Date(`2000-01-01T${end}`);
-      if (e < s) e = new Date(`2000-01-02T${end}`);
-      const diff = (e - s) / (1000*60*60);
-      return Math.round(diff * 2) / 2;
-    }
+            <div class="section" style="margin-top: 20px;">
+                <h2>📅 全予約一覧</h2>
+                <div style="display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;">
+                    <select id="filterType" onchange="updateBookingList()">
+                        <option value="all">すべて表示</option>
+                        <option value="date">日付検索</option>
+                        <option value="user">予約者検索</option>
+                        <option value="daterange">期間検索</option>
+                    </select>
+                    <input type="date" id="filterDate" style="display: none;" onchange="updateBookingList()">
+                    <input type="text" id="filterUser" placeholder="予約者名で検索" style="display: none;" onchange="updateBookingList()">
+                    <div style="display: none; gap: 6px;" id="dateRangeFilter">
+                        <input type="date" id="filterStart" onchange="updateBookingList()">
+                        <span style="align-self: center;">〜</span>
+                        <input type="date" id="filterEnd" onchange="updateBookingList()">
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>日付</th>
+                                <th>時間</th>
+                                <th>人数</th>
+                                <th>予約者</th>
+                                <th>用途</th>
+                                <th>料金</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fullBookingTable">
+                            <tr><td colspan="7" class="no-data">予約がまだありません</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
-    function onSaveDetail() {
-      const date = document.getElementById('formDate').value;
-      const start = document.getElementById('formStart').value;
-      const end = document.getElementById('formEnd').value;
-      let duration = parseFloat(document.getElementById('formDuration').value) || 0;
-      const people = parseInt(document.getElementById('formPeople').value) || 0;
-      const name = document.getElementById('formName').value.trim();
-      const purpose = document.getElementById('formPurpose').value.trim();
-      const special = parseInt(document.getElementById('formSpecialPrice').value) || 0;
-      const notes = document.getElementById('formNotesToggle').checked ? document.getElementById('formNotes').value.trim() : '';
+        <!-- 設定タブ -->
+        <div id="settings-tab" class="tab-content">
+            <div class="grid-2">
+                <div class="section">
+                    <h2>💰 料金設定</h2>
+                    <div class="form-group">
+                        <label>1人利用（円/時間）*</label>
+                        <input type="number" id="rate1" value="1500" step="100">
+                    </div>
+                    <div class="form-group">
+                        <label>2人利用（円/時間）*</label>
+                        <input type="number" id="rate2" value="2000" step="100">
+                    </div>
+                    <div class="form-group">
+                        <label>3人利用（円/時間）*</label>
+                        <input type="number" id="rate3" value="2400" step="100">
+                    </div>
+                    <div class="form-group">
+                        <label>4人以上（円/時間）*</label>
+                        <input type="number" id="rate4" value="3000" step="100">
+                    </div>
+                    <div class="info-box">
+                        <strong>📌 計算方法：</strong><br>
+                        人数に応じた時間単価 × 使用時間<br>
+                        特別料金が設定されていればそちらを優先
+                    </div>
+                </div>
 
-      if (!date || !start || !end || !duration || duration <= 0 || !people || !name) {
-        alert('必須項目（日付・時間・使用時間・人数・予約者名）を入力してください。');
-        return;
-      }
+                <div class="section">
+                    <h2>📊 当月の集計</h2>
+                    <div class="stat-card">
+                        <div class="stat-label">当月の総売上</div>
+                        <div class="stat-value" id="statMonthlyTotal">¥0</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #059669, #047857);">
+                        <div class="stat-label">当月の予約数</div>
+                        <div class="stat-value" id="statMonthlyCount">0件</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <div class="stat-label">平均客単価</div>
+                        <div class="stat-value" id="statAvgPrice">¥0</div>
+                    </div>
+                </div>
+            </div>
 
-      const overlap = checkOverlap(date, start, end, editingId);
-      if (overlap) {
-        if (!confirm(`⚠️ 時間が重なっています：${overlap.startTime}-${overlap.endTime} ${overlap.name}
-それでも登録しますか？`)) {
-          return;
-        }
-      }
+            <div class="section" style="margin-top: 20px;">
+                <h2>💾 データ管理</h2>
+                <div class="button-group">
+                    <button class="btn-success" onclick="exportCSV()">📥 CSVエクスポート</button>
+                    <button class="btn-warning" onclick="exportJSON()">📥 JSONエクスポート</button>
+                    <button class="btn-secondary" onclick="triggerImport()">📤 インポート</button>
+                    <button class="btn-danger" onclick="clearAllData()">🗑️ すべて削除</button>
+                </div>
+                <input type="file" id="importFile" style="display: none;" accept=".json">
+            </div>
+        </div>
 
-      const price = calcPrice(duration, people, special);
+        <!-- 集計分析タブ -->
+        <div id="analytics-tab" class="tab-content">
+            <div class="grid-2">
+                <div class="section">
+                    <h2>📈 集計種別</h2>
+                    <div class="form-group">
+                        <select id="analyticsType" onchange="updateAnalytics()">
+                            <option value="user">予約者ごと</option>
+                            <option value="day">曜日ごと</option>
+                            <option value="date">日付ごと</option>
+                            <option value="week">週ごと</option>
+                            <option value="month">月ごと</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>期間指定（オプション）</label>
+                        <div class="form-row">
+                            <input type="date" id="analyticStart" onchange="updateAnalytics()">
+                            <input type="date" id="analyticEnd" onchange="updateAnalytics()">
+                        </div>
+                    </div>
+                </div>
 
-      if (editingId != null) {
-        const idx = bookings.findIndex(b => b.id === editingId);
-        if (idx >= 0) {
-          bookings[idx] = { id: editingId, date, startTime:start, endTime:end, duration, people, name, purpose, price, specialPrice: special, notes };
-        }
-        alert('予約を更新しました。');
-      } else {
-        bookings.push({ id: Date.now(), date, startTime:start, endTime:end, duration, people, name, purpose, price, specialPrice: special, notes });
-        alert('予約を追加しました。');
-      }
+                <div class="section">
+                    <h2>📊 統計情報</h2>
+                    <div class="stat-card">
+                        <div class="stat-label">総売上</div>
+                        <div class="stat-value" id="analyticTotal">¥0</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #059669, #047857);">
+                        <div class="stat-label">総予約数</div>
+                        <div class="stat-value" id="analyticCount">0件</div>
+                    </div>
+                </div>
+            </div>
 
-      clearDetailForm(true);
-      renderTables();
-      renderCalendar();
-      updateAnalytics();
-    }
+            <div class="section" style="margin-top: 20px;">
+                <h2>📊 詳細集計</h2>
+                <div id="analyticsResults" class="summary-grid"></div>
+            </div>
+        </div>
+    </div>
 
-    function onEditBooking(id) {
-      const b = bookings.find(x=>x.id===id);
-      if (!b) return;
-      editingId = id;
-      document.getElementById('editInfo').style.display = 'block';
-      document.getElementById('editLabel').textContent = `${b.name} / ${b.date}`;
-      document.getElementById('formSaveBtn').textContent = '💾 更新';
-      document.getElementById('formCancelEditBtn').style.display = 'inline-block';
+    <script>
+        let bookings = [];
+        let currentViewDate = new Date();
+        let editingBookingId = null;
 
-      document.getElementById('formDate').value = b.date;
-      document.getElementById('formStart').value = b.startTime;
-      document.getElementById('formEnd').value = b.endTime;
-      document.getElementById('formDuration').value = b.duration;
-      document.getElementById('formPeople').value = b.people;
-      document.getElementById('formName').value = b.name;
-      document.getElementById('formPurpose').value = b.purpose;
-      document.getElementById('formSpecialPrice').value = b.specialPrice || '';
-      if (b.notes) {
-        document.getElementById('formNotesToggle').checked = true;
-        document.getElementById('formNotes').style.display = 'block';
-        document.getElementById('formNotes').value = b.notes;
-      } else {
-        document.getElementById('formNotesToggle').checked = false;
-        document.getElementById('formNotes').style.display = 'none';
-        document.getElementById('formNotes').value = '';
-      }
-      document.getElementById('formPriceDisplay').textContent = '¥' + (b.price || 0).toLocaleString();
-
-      document.querySelectorAll('.tab-btn').forEach(btn=>{
-        btn.classList.toggle('active', btn.dataset.tab==='booking');
-      });
-      document.querySelectorAll('.tab-content').forEach(sec=>{
-        sec.classList.toggle('active', sec.id==='booking');
-      });
-    }
-
-    function onCopyBooking(id) {
-      const b = bookings.find(x=>x.id===id);
-      if (!b) return;
-      editingId = null;
-      document.getElementById('editInfo').style.display = 'none';
-      document.getElementById('formSaveBtn').textContent = '✓ 追加';
-      document.getElementById('formCancelEditBtn').style.display = 'none';
-
-      document.getElementById('formDate').value = b.date;
-      document.getElementById('formStart').value = b.startTime;
-      document.getElementById('formEnd').value = b.endTime;
-      document.getElementById('formDuration').value = b.duration;
-      document.getElementById('formPeople').value = b.people;
-      document.getElementById('formName').value = b.name;
-      document.getElementById('formPurpose').value = b.purpose;
-      document.getElementById('formSpecialPrice').value = b.specialPrice || '';
-      if (b.notes) {
-        document.getElementById('formNotesToggle').checked = true;
-        document.getElementById('formNotes').style.display = 'block';
-        document.getElementById('formNotes').value = b.notes;
-      } else {
-        document.getElementById('formNotesToggle').checked = false;
-        document.getElementById('formNotes').style.display = 'none';
-        document.getElementById('formNotes').value = '';
-      }
-      const price = calcPrice(b.duration, b.people, b.specialPrice || 0);
-      document.getElementById('formPriceDisplay').textContent = '¥' + price.toLocaleString();
-
-      document.querySelectorAll('.tab-btn').forEach(btn=>{
-        btn.classList.toggle('active', btn.dataset.tab==='booking');
-      });
-      document.querySelectorAll('.tab-content').forEach(sec=>{
-        sec.classList.toggle('active', sec.id==='booking');
-      });
-    }
-
-    function onDeleteBooking(id) {
-      if (!confirm('この予約を削除しますか？')) return;
-      bookings = bookings.filter(b=>b.id!==id);
-      renderTables();
-      renderCalendar();
-      updateAnalytics();
-    }
-
-    // ===== クイック予約 =====
-    function clearQuickForm() {
-      document.getElementById('quickStart').value = '';
-      document.getElementById('quickEnd').value = '';
-      document.getElementById('quickPeople').value = '';
-      document.getElementById('quickName').value = '';
-      document.getElementById('quickPurpose').value = '';
-      document.getElementById('quickSpecialPrice').value = '';
-      document.getElementById('quickWarning').innerHTML = '';
-      document.getElementById('quickPriceDisplay').textContent = '¥0';
-      document.getElementById('quickDate').value = formatDate(new Date());
-    }
-
-    function updateQuickPrice() {
-      const start = document.getElementById('quickStart').value;
-      const end = document.getElementById('quickEnd').value;
-      const people = parseInt(document.getElementById('quickPeople').value) || 0;
-      const special = parseInt(document.getElementById('quickSpecialPrice').value) || 0;
-      if (!start || !end || !people) {
-        document.getElementById('quickPriceDisplay').textContent = '¥0';
-        return;
-      }
-      const duration = computeDurationFromTimes(start, end);
-      const price = calcPrice(duration, people, special);
-      document.getElementById('quickPriceDisplay').textContent = '¥' + price.toLocaleString();
-    }
-
-    function onAddQuick() {
-      const date = document.getElementById('quickDate').value;
-      const start = document.getElementById('quickStart').value;
-      const end = document.getElementById('quickEnd').value;
-      const people = parseInt(document.getElementById('quickPeople').value) || 0;
-      const name = document.getElementById('quickName').value.trim();
-      const purpose = document.getElementById('quickPurpose').value.trim();
-      const special = parseInt(document.getElementById('quickSpecialPrice').value) || 0;
-
-      if (!date || !start || !end || !people || !name) {
-        alert('必須項目（日付・時間・人数・予約者名）を入力してください。');
-        return;
-      }
-
-      const duration = computeDurationFromTimes(start, end);
-      const overlap = checkOverlap(date, start, end, null);
-      if (overlap) {
-        document.getElementById('quickWarning').innerHTML =
-          `<div class="alert alert-warning">⚠️ 重複予約: ${overlap.startTime}-${overlap.endTime} ${overlap.name}</div>`;
-        if (!confirm(`時間が重なっています：${overlap.startTime}-${overlap.endTime} ${overlap.name}
-それでも登録しますか？`)) {
-          return;
-        }
-      } else {
-        document.getElementById('quickWarning').innerHTML = '';
-      }
-
-      const price = calcPrice(duration, people, special);
-      bookings.push({ id: Date.now(), date, startTime:start, endTime:end, duration, people, name, purpose, price, specialPrice: special, notes:'' });
-      clearQuickForm();
-      renderTables();
-      renderCalendar();
-      updateAnalytics();
-    }
-
-    // ===== データ管理 =====
-    function exportCsv() {
-      if (!bookings.length) {
-        alert('エクスポートするデータがありません。');
-        return;
-      }
-      let csv = '日付,開始時刻,終了時刻,使用時間,人数,予約者,用途,料金,特別料金,メモ\n';
-      bookings.forEach(b=>{
-        csv += [
-          b.date,
-          b.startTime || '',
-          b.endTime || '',
-          b.duration || 0,
-          b.people || '',
-          `"${(b.name || '').replace(/"/g,'""')}"`,
-          `"${(b.purpose || '').replace(/"/g,'""')}"`,
-          b.price || 0,
-          b.specialPrice || '',
-          `"${(b.notes || '').replace(/"/g,'""')}"`
-        ].join(',') + '\n';
-      });
-      const blob = new Blob([csv], {type:'text/csv'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `studio-bookings-${formatDate(new Date())}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function exportJson() {
-      if (!bookings.length) {
-        alert('エクスポートするデータがありません。');
-        return;
-      }
-      const json = JSON.stringify(bookings, null, 2);
-      const blob = new Blob([json], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `studio-bookings-${formatDate(new Date())}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function importJson(file) {
-      const reader = new FileReader();
-      reader.onload = e=>{
-        try {
-          const data = JSON.parse(e.target.result);
-          if (Array.isArray(data)) {
-            bookings = data;
-            renderTables();
+        function init() {
+            setTodayDate();
             renderCalendar();
+            updateBookingList();
             updateAnalytics();
-            alert('インポートしました。');
-          } else {
-            alert('JSON形式が不正です。');
-          }
-        } catch (err) {
-          alert('JSONの読み込みに失敗しました。');
+            attachEventListeners();
         }
-      };
-      reader.readAsText(file);
-    }
 
-    function clearAll() {
-      if (!confirm('すべての予約データを削除しますか？この操作は元に戻せません。')) return;
-      bookings = [];
-      renderTables();
-      renderCalendar();
-      updateAnalytics();
-    }
+        function attachEventListeners() {
+            document.getElementById('formStart').addEventListener('change', calcDurationFromTime);
+            document.getElementById('formEnd').addEventListener('change', calcDurationFromTime);
+            document.getElementById('formDuration').addEventListener('change', calcTimeFromDuration);
+            document.getElementById('formDuration').addEventListener('change', updateFormPrice);
+            document.getElementById('formPeople').addEventListener('change', updateFormPrice);
+            document.getElementById('formSpecialPrice').addEventListener('change', updateFormPrice);
+            document.getElementById('rate1').addEventListener('change', updateFormPrice);
+            document.getElementById('rate2').addEventListener('change', updateFormPrice);
+            document.getElementById('rate3').addEventListener('change', updateFormPrice);
+            document.getElementById('rate4').addEventListener('change', updateFormPrice);
 
-    // ===== Google Calendar 連携 =====
-    const CLIENT_ID = '762758637922-36iv2essgibium3k734jhcqc9ejufrb8.apps.googleusercontent.com';
-    const CALENDAR_ID = '44f97c8f7f2bb31917c50c160b1ee12bb0e0bc39c7c08e0b4270421c9550efc4@group.calendar.google.com';
-    const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly';
-    const DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'];
+            document.getElementById('quickStart').addEventListener('change', updateQuickPrice);
+            document.getElementById('quickEnd').addEventListener('change', updateQuickPrice);
+            document.getElementById('quickPeople').addEventListener('change', updateQuickPrice);
+            document.getElementById('quickSpecialPrice').addEventListener('change', updateQuickPrice);
 
-    let gapiInited = false;
-    let gisInited = false;
-    let tokenClient = null;
-
-    function updateGcalStatus(msg) {
-      const el = document.getElementById('gcalStatus');
-      if (el) el.textContent = msg;
-    }
-
-    function gapiLoaded() {
-      if (typeof gapi === 'undefined') return;
-      gapi.load('client', async () => {
-        try {
-          await gapi.client.init({ discoveryDocs: DISCOVERY_DOCS });
-          gapiInited = true;
-          updateGcalStatus('Google API 初期化完了');
-        } catch (e) {
-          console.error(e);
-          updateGcalStatus('Google API 初期化に失敗しました');
+            document.getElementById('importFile').addEventListener('change', handleImport);
         }
-      });
-    }
 
-    function gisLoaded() {
-      if (!(google && google.accounts && google.accounts.oauth2)) return;
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: () => {}
-      });
-      gisInited = true;
-      updateGcalStatus('ログイン準備完了');
-    }
+        function switchTab(event, tabName) {
+            event.preventDefault();
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
 
-    function parsePeopleFromMemo(memo) {
-      if (!memo) return '';
-      const m = memo.match(/(\d+)\s*[人名]/);
-      if (m) return parseInt(m[1], 10);
-      return '';
-    }
-
-    function parseAmountFromMemo(memo) {
-      if (!memo) return 0;
-      // 「5000円」「5,000 円」など円が明示されている場合のみ金額として扱う
-      const m = memo.match(/([0-9,]+)\s*円/);
-      if (m) {
-        return parseInt(m[1].replace(/,/g, ''), 10) || 0;
-      }
-      // 「¥5000」「¥ 5,000」などの表記
-      const m2 = memo.match(/¥\s*([0-9,]+)/);
-      if (m2) {
-        return parseInt(m2[1].replace(/,/g, ''), 10) || 0;
-      }
-      return 0;
-    }
-
-    function eventToBooking(e) {
-      const start = new Date(e.start.dateTime || e.start.date);
-      const end   = new Date(e.end.dateTime   || e.end.date);
-      const dateStr = start.toISOString().split('T')[0];
-
-      const durationHours = (end - start) / (1000 * 60 * 60);
-      const rounded = Math.round(durationHours * 2) / 2;
-
-      const title = e.summary || '(無題)';
-      const memo  = e.description || '';
-
-      const peopleParsed = parsePeopleFromMemo(memo);
-      const amountParsed = parseAmountFromMemo(memo);
-
-      const people = peopleParsed || '';
-      let special = 0;
-      let price = 0;
-
-      if (amountParsed) {
-        special = amountParsed;
-        price = amountParsed;
-      } else if (peopleParsed && rounded > 0) {
-        price = calcPrice(rounded, peopleParsed, 0);
-      } else {
-        special = 0;
-        price = 0;
-      }
-
-      return {
-        id: e.id,
-        date: dateStr,
-        startTime: start.toTimeString().slice(0,5),
-        endTime:   end.toTimeString().slice(0,5),
-        duration: rounded,
-        people,
-        name: title,
-        purpose: memo,
-        price,
-        specialPrice: special,
-        notes: '',
-      };
-    }
-
-    async function loadCurrentMonthFromCalendar() {
-      if (!gapiInited || !gisInited) {
-        updateGcalStatus('Googleライブラリの読み込み中です。数秒お待ちください。');
-        return;
-      }
-
-      tokenClient.callback = async (resp) => {
-        if (resp.error) {
-          console.error(resp);
-          updateGcalStatus('認証に失敗しました');
-          return;
+            if (tabName === 'calendar') renderCalendar();
+            if (tabName === 'analytics') updateAnalytics();
         }
-        try {
-          updateGcalStatus('カレンダーから当月分を取得中…');
 
-          const now = new Date();
-          const end   = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-          const start = new Date(now.getFullYear(), now.getMonth() - 14, 1);
+        function renderCalendar() {
+            const year = currentViewDate.getFullYear();
+            const month = currentViewDate.getMonth();
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-          const response = await gapi.client.calendar.events.list({
-            calendarId: CALENDAR_ID,
-            timeMin: start.toISOString(),
-            timeMax: end.toISOString(),
-            singleEvents: true,
-            orderBy: 'startTime',
-          });
+            document.getElementById('monthDisplay').textContent = `${year}年 ${month + 1}月`;
 
-          const events = response.result.items || [];
-          if (!events.length) {
-            bookings = [];
-            renderTables();
+            const firstDay = new Date(year, month, 1);
+            let startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - (firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1));
+
+            const table = document.getElementById('calendarTable');
+            table.innerHTML = '';
+
+            const headerRow = table.insertRow();
+            ['月', '火', '水', '木', '金', '土', '日'].forEach(day => {
+                const th = headerRow.insertCell();
+                th.textContent = day;
+                th.style.cssText = 'background-color: var(--primary); color: white; text-align: center; font-weight: 600; padding: 8px;';
+            });
+
+            let currentDate = new Date(startDate);
+            for (let week = 0; week < 6; week++) {
+                const row = table.insertRow();
+                for (let day = 0; day < 7; day++) {
+                    const cell = row.insertCell();
+                    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+
+                    if (currentDate.getMonth() !== month) {
+                        cell.classList.add('other-month');
+                    }
+                    if (dateStr === todayStr) {
+                        cell.classList.add('today');
+                    }
+
+                    const dateDiv = document.createElement('div');
+                    dateDiv.className = 'cal-date';
+                    dateDiv.textContent = currentDate.getDate();
+                    cell.appendChild(dateDiv);
+
+                    const entriesDiv = document.createElement('div');
+                    entriesDiv.className = 'cal-entries';
+                    const dayBookings = bookings.filter(b => b.date === dateStr);
+                    dayBookings.forEach(b => {
+                        const entry = document.createElement('div');
+                        entry.className = 'cal-entry';
+                        entry.textContent = `${b.startTime || '時間'} ${b.name}`;
+                        entry.onclick = (e) => {
+                            e.stopPropagation();
+                            showBookingDetail(b);
+                        };
+                        entriesDiv.appendChild(entry);
+                    });
+                    cell.appendChild(entriesDiv);
+
+                    cell.onclick = () => setQuickDate(dateStr);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            }
+        }
+
+        function prevMonth() {
+            currentViewDate.setMonth(currentViewDate.getMonth() - 1);
             renderCalendar();
-            updateAnalytics();
-            updateGcalStatus('当月の予定はありません');
-            alert('当月の予定はありません。');
-            return;
-          }
-
-          bookings = events.map(event => eventToBooking(event));
-
-          renderTables();
-          renderCalendar();
-          updateAnalytics();
-          updateGcalStatus(`当月分 ${events.length}件 を読み込みました`);
-          alert('Googleカレンダーから当月分を読み込みました。');
-        } catch (e) {
-          console.error(e);
-          updateGcalStatus('カレンダー取得でエラーが発生しました');
-          alert('カレンダー取得でエラーが発生しました。');
         }
-      };
 
-      if (gapi.client.getToken() === null) {
-        tokenClient.requestAccessToken({ prompt: 'consent' });
-      } else {
-        tokenClient.requestAccessToken({ prompt: '' });
-      }
-    }
-
-    // ===== 初期化 =====
-    function init() {
-      document.querySelectorAll('.tab-btn').forEach(btn=>{
-        btn.addEventListener('click', ()=>{
-          const tab = btn.dataset.tab;
-          document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b===btn));
-          document.querySelectorAll('.tab-content').forEach(sec=>sec.classList.toggle('active', sec.id===tab));
-          if (tab === 'calendar') renderCalendar();
-          if (tab === 'analytics') updateAnalytics();
-        });
-      });
-
-      const today = formatDate(new Date());
-      document.getElementById('quickDate').value = today;
-      document.getElementById('formDate').value = today;
-
-      document.getElementById('prevMonthBtn').onclick = ()=>{ currentViewDate.setMonth(currentViewDate.getMonth()-1); renderCalendar(); };
-      document.getElementById('nextMonthBtn').onclick = ()=>{ currentViewDate.setMonth(currentViewDate.getMonth()+1); renderCalendar(); };
-
-      document.getElementById('formNotesToggle').addEventListener('change', e=>{
-        document.getElementById('formNotes').style.display = e.target.checked ? 'block' : 'none';
-      });
-
-      document.getElementById('formStart').addEventListener('change', ()=>{
-        const s = document.getElementById('formStart').value;
-        const e = document.getElementById('formEnd').value;
-        if (s && e) {
-          const d = computeDurationFromTimes(s,e);
-          document.getElementById('formDuration').value = d || '';
+        function nextMonth() {
+            currentViewDate.setMonth(currentViewDate.getMonth() + 1);
+            renderCalendar();
         }
-      });
-      document.getElementById('formEnd').addEventListener('change', ()=>{
-        const s = document.getElementById('formStart').value;
-        const e = document.getElementById('formEnd').value;
-        if (s && e) {
-          const d = computeDurationFromTimes(s,e);
-          document.getElementById('formDuration').value = d || '';
+
+        function calcHourlyRate(people) {
+            const rates = {
+                1: parseInt(document.getElementById('rate1').value) || 1500,
+                2: parseInt(document.getElementById('rate2').value) || 2000,
+                3: parseInt(document.getElementById('rate3').value) || 2400,
+                4: parseInt(document.getElementById('rate4').value) || 3000
+            };
+            return people <= 3 ? rates[people] : rates[4];
         }
-      });
-      document.getElementById('formDuration').addEventListener('change', ()=>{
-        const s = document.getElementById('formStart').value;
-        const d = parseFloat(document.getElementById('formDuration').value) || 0;
-        if (s && d>0) {
-          const start = new Date(`2000-01-01T${s}`);
-          const end = new Date(start.getTime() + d*60*60*1000);
-          const hh = String(end.getHours()).padStart(2,'0');
-          const mm = String(end.getMinutes()).padStart(2,'0');
-          document.getElementById('formEnd').value = `${hh}:${mm}`;
+
+        function calcPrice(duration, people, specialPrice) {
+            if (specialPrice) return specialPrice;
+            if (!duration || duration < 0.5) return 0;
+            const rate = calcHourlyRate(people);
+            return Math.round(duration * rate);
         }
-      });
 
-      ['formDuration','formPeople','formSpecialPrice','rate1','rate2','rate3','rate4'].forEach(id=>{
-        document.getElementById(id).addEventListener('change', ()=>{
-          const duration = parseFloat(document.getElementById('formDuration').value) || 0;
-          const people = parseInt(document.getElementById('formPeople').value) || 0;
-          const special = parseInt(document.getElementById('formSpecialPrice').value) || 0;
-          const price = calcPrice(duration, people, special);
-          document.getElementById('formPriceDisplay').textContent = '¥' + price.toLocaleString();
-        });
-      });
+        function calcDurationFromTime() {
+            const start = document.getElementById('formStart').value;
+            const end = document.getElementById('formEnd').value;
+            if (!start || !end) return;
 
-      document.getElementById('formSaveBtn').onclick = onSaveDetail;
-      document.getElementById('formClearBtn').onclick = ()=>clearDetailForm(false);
-      document.getElementById('formCancelEditBtn').onclick = ()=>clearDetailForm(true);
+            const startDate = new Date(`2000-01-01T${start}`);
+            let endDate = new Date(`2000-01-01T${end}`);
+            if (endDate < startDate) endDate = new Date(`2000-01-02T${end}`);
 
-      ['quickStart','quickEnd','quickPeople','quickSpecialPrice','rate1','rate2','rate3','rate4']
-        .forEach(id=> document.getElementById(id).addEventListener('change', updateQuickPrice));
-      document.getElementById('quickAddBtn').onclick = onAddQuick;
-      document.getElementById('quickClearBtn').onclick = clearQuickForm;
+            const diff = (endDate - startDate) / (1000 * 60 * 60);
+            const rounded = Math.round(diff * 2) / 2;
+            if (rounded >= 0.5) {
+                document.getElementById('formDuration').value = rounded;
+                updateFormPrice();
+            }
+        }
 
-      document.getElementById('filterType').addEventListener('change', renderTables);
-      document.getElementById('filterDate').addEventListener('change', renderTables);
-      document.getElementById('filterUser').addEventListener('change', renderTables);
-      document.getElementById('filterStart').addEventListener('change', renderTables);
-      document.getElementById('filterEnd').addEventListener('change', renderTables);
+        function calcTimeFromDuration() {
+            const start = document.getElementById('formStart').value;
+            const duration = parseFloat(document.getElementById('formDuration').value) || 0;
+            if (!start || duration < 0.5) return;
 
-      document.getElementById('analyticsType').addEventListener('change', updateAnalytics);
-      document.getElementById('analyticStart').addEventListener('change', updateAnalytics);
-      document.getElementById('analyticEnd').addEventListener('change', updateAnalytics);
+            const startDate = new Date(`2000-01-01T${start}`);
+            const endDate = new Date(startDate.getTime() + duration * 60 * 60 * 1000);
+            const hours = String(endDate.getHours()).padStart(2, '0');
+            const mins = String(endDate.getMinutes()).padStart(2, '0');
+            document.getElementById('formEnd').value = `${hours}:${mins}`;
+        }
 
-      document.getElementById('exportCsvBtn').onclick = exportCsv;
-      document.getElementById('exportJsonBtn').onclick = exportJson;
-      document.getElementById('importJsonBtn').onclick = ()=>document.getElementById('importFile').click();
-      document.getElementById('importFile').addEventListener('change', e=>{
-        if (e.target.files && e.target.files[0]) importJson(e.target.files[0]);
-      });
-      document.getElementById('clearAllBtn').onclick = clearAll;
+        function checkOverlap(date, startTime, endTime, excludeId = null) {
+            const dayBookings = bookings.filter(b => b.date === date && (!excludeId || b.id !== excludeId));
+            const inputStart = new Date(`2000-01-01T${startTime}`);
+            let inputEnd = new Date(`2000-01-01T${endTime}`);
+            if (inputEnd < inputStart) inputEnd = new Date(`2000-01-02T${endTime}`);
 
-      const gcalBtn = document.getElementById('gcalLoadBtn');
-      if (gcalBtn) {
-        gcalBtn.addEventListener('click', loadCurrentMonthFromCalendar);
-      }
+            for (let b of dayBookings) {
+                if (!b.startTime || !b.endTime) continue;
+                const bStart = new Date(`2000-01-01T${b.startTime}`);
+                let bEnd = new Date(`2000-01-01T${b.endTime}`);
+                if (bEnd < bStart) bEnd = new Date(`2000-01-02T${b.endTime}`);
 
-      const listPrev = document.getElementById('listPrevMonthBtn');
-      const listNext = document.getElementById('listNextMonthBtn');
-      if (listPrev) {
-        listPrev.addEventListener('click', ()=>{
-          listViewDate.setMonth(listViewDate.getMonth() - 1);
-          renderTables();
-        });
-      }
-      if (listNext) {
-        listNext.addEventListener('click', ()=>{
-          listViewDate.setMonth(listViewDate.getMonth() + 1);
-          renderTables();
-        });
-      }
+                if (!(inputEnd <= bStart || inputStart >= bEnd)) {
+                    return b;
+                }
+            }
+            return null;
+        }
 
-      loadFromStorage();
-      renderCalendar();
-      renderTables();
-      updateAnalytics();
-    }
+        function updateFormPrice() {
+            const duration = parseFloat(document.getElementById('formDuration').value) || 0;
+            const people = parseInt(document.getElementById('formPeople').value) || 1;
+            const special = parseInt(document.getElementById('formSpecialPrice').value) || 0;
+            const price = calcPrice(duration, people, special);
+            document.getElementById('formPriceDisplay').textContent = '¥' + price.toLocaleString();
+        }
 
-    window.addEventListener('load', () => {
-      init();
-      try { gapiLoaded(); } catch(e) {}
-      try { gisLoaded(); } catch(e) {}
-    });
+        function updateQuickPrice() {
+            const start = document.getElementById('quickStart').value;
+            const end = document.getElementById('quickEnd').value;
+            const people = parseInt(document.getElementById('quickPeople').value) || 1;
+            const special = parseInt(document.getElementById('quickSpecialPrice').value) || 0;
 
-    window.onEditBooking = onEditBooking;
-    window.onCopyBooking = onCopyBooking;
-    window.onDeleteBooking = onDeleteBooking;
-  </script>
+            if (!start || !end) {
+                document.getElementById('quickPriceDisplay').textContent = '¥0';
+                return;
+            }
+
+            const startDate = new Date(`2000-01-01T${start}`);
+            let endDate = new Date(`2000-01-01T${end}`);
+            if (endDate < startDate) endDate = new Date(`2000-01-02T${end}`);
+            const duration = (endDate - startDate) / (1000 * 60 * 60);
+            const price = calcPrice(duration, people, special);
+            document.getElementById('quickPriceDisplay').textContent = '¥' + price.toLocaleString();
+        }
+
+        function addDetailBooking() {
+            const date = document.getElementById('formDate').value;
+            const startTime = document.getElementById('formStart').value;
+            const endTime = document.getElementById('formEnd').value;
+            const duration = parseFloat(document.getElementById('formDuration').value);
+            const people = parseInt(document.getElementById('formPeople').value);
+            const name = document.getElementById('formName').value;
+            const purpose = document.getElementById('formPurpose').value;
+            const special = parseInt(document.getElementById('formSpecialPrice').value) || 0;
+
+            if (!date || !duration || !people || !name) {
+                alert('必須項目を入力してください');
+                return;
+            }
+
+            const overlap = checkOverlap(date, startTime, endTime, editingBookingId);
+            if (overlap) {
+                if (!confirm(`⚠️ 時間が重なる予約があります：${overlap.startTime}-${overlap.endTime} ${overlap.name}\n\nそれでも追加しますか？`)) return;
+            }
+
+            const price = calcPrice(duration, people, special);
+
+            if (editingBookingId) {
+                const index = bookings.findIndex(b => b.id === editingBookingId);
+                if (index >= 0) {
+                    bookings[index] = {
+                        id: editingBookingId,
+                        date,
+                        startTime,
+                        endTime,
+                        duration,
+                        people,
+                        name,
+                        purpose,
+                        price
+                    };
+                }
+                alert('✓ 予約を更新しました');
+            } else {
+                bookings.push({
+                    id: Date.now(),
+                    date,
+                    startTime,
+                    endTime,
+                    duration,
+                    people,
+                    name,
+                    purpose,
+                    price
+                });
+                alert('✓ 予約を追加しました');
+            }
+
+            clearDetailForm();
+            updateBookingList();
+            renderCalendar();
+        }
+
+        function editBooking(id) {
+            const b = bookings.find(b => b.id === id);
+            if (!b) return;
+
+            editingBookingId = b.id;
+            document.getElementById('editModeBanner').classList.add('active');
+            document.getElementById('editingBookingInfo').textContent = `${b.name} (${b.date})`;
+            document.getElementById('formSubmitBtn').textContent = '💾 更新';
+            document.getElementById('cancelEditBtn').style.display = 'block';
+
+            document.getElementById('formDate').value = b.date;
+            document.getElementById('formStart').value = b.startTime;
+            document.getElementById('formEnd').value = b.endTime;
+            document.getElementById('formDuration').value = b.duration;
+            document.getElementById('formPeople').value = b.people;
+            document.getElementById('formName').value = b.name;
+            document.getElementById('formPurpose').value = b.purpose;
+            document.getElementById('formSpecialPrice').value = b.price !== calcPrice(b.duration, b.people, 0) ? b.price : '';
+            updateFormPrice();
+
+            document.querySelector('[onclick*="booking"]').click();
+        }
+
+        function cancelEdit() {
+            editingBookingId = null;
+            clearDetailForm();
+        }
+
+        function addQuickBooking() {
+            const date = document.getElementById('quickDate').value;
+            const start = document.getElementById('quickStart').value;
+            const end = document.getElementById('quickEnd').value;
+            const people = parseInt(document.getElementById('quickPeople').value);
+            const name = document.getElementById('quickName').value;
+            const purpose = document.getElementById('quickPurpose').value;
+            const special = parseInt(document.getElementById('quickSpecialPrice').value) || 0;
+
+            if (!date || !start || !end || !people || !name) {
+                alert('必須項目を入力してください');
+                return;
+            }
+
+            const startDate = new Date(`2000-01-01T${start}`);
+            let endDate = new Date(`2000-01-01T${end}`);
+            if (endDate < startDate) endDate = new Date(`2000-01-02T${end}`);
+            const duration = (endDate - startDate) / (1000 * 60 * 60);
+
+            const overlap = checkOverlap(date, start, end);
+            if (overlap) {
+                if (!confirm(`⚠️ 時間が重なる予約があります：${overlap.startTime}-${overlap.endTime} ${overlap.name}\n\n追加しますか？`)) return;
+            }
+
+            const price = calcPrice(duration, people, special);
+            bookings.push({
+                id: Date.now(),
+                date,
+                startTime: start,
+                endTime: end,
+                duration,
+                people,
+                name,
+                purpose,
+                price
+            });
+
+            clearQuickForm();
+            updateBookingList();
+            renderCalendar();
+        }
+
+        function updateBookingList() {
+            const filterType = document.getElementById('filterType').value;
+            let filtered = [...bookings].sort((a, b) => new Date(b.date + 'T' + (b.startTime || '00:00')) - new Date(a.date + 'T' + (a.startTime || '00:00')));
+
+            document.getElementById('filterDate').style.display = filterType === 'date' ? 'block' : 'none';
+            document.getElementById('filterUser').style.display = filterType === 'user' ? 'block' : 'none';
+            document.getElementById('dateRangeFilter').style.display = filterType === 'daterange' ? 'flex' : 'none';
+
+            if (filterType === 'date') {
+                const d = document.getElementById('filterDate').value;
+                if (d) filtered = filtered.filter(b => b.date === d);
+            } else if (filterType === 'user') {
+                const u = document.getElementById('filterUser').value;
+                if (u) filtered = filtered.filter(b => b.name.includes(u));
+            } else if (filterType === 'daterange') {
+                const s = document.getElementById('filterStart').value;
+                const e = document.getElementById('filterEnd').value;
+                if (s) filtered = filtered.filter(b => b.date >= s);
+                if (e) filtered = filtered.filter(b => b.date <= e);
+            }
+
+            renderTable(filtered.slice(0, 10), 'recentTable');
+            renderTable(filtered, 'fullBookingTable');
+            updateMonthlySummary();
+        }
+
+        function renderTable(data, tableId) {
+            const tbody = document.getElementById(tableId);
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="no-data">該当する予約がありません</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(b => `
+                <tr>
+                    <td>${b.date}</td>
+                    <td>${b.duration}h${b.startTime ? ` (${b.startTime}-${b.endTime})` : ''}</td>
+                    <td>${b.people || '-'}</td>
+                    <td>${b.name}</td>
+                    <td>${b.purpose || '-'}</td>
+                    <td><strong>¥${b.price.toLocaleString()}</strong></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-warning btn-small" onclick="editBooking(${b.id})">✎</button>
+                            <button class="btn-secondary btn-small" onclick="copyBooking(${b.id})">📋</button>
+                            <button class="btn-danger btn-small" onclick="deleteBooking(${b.id})">✕</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteBooking(id) {
+            if (confirm('この予約を削除しますか？')) {
+                bookings = bookings.filter(b => b.id !== id);
+                updateBookingList();
+                renderCalendar();
+            }
+        }
+
+        function copyBooking(id) {
+            const b = bookings.find(b => b.id === id);
+            if (!b) return;
+            document.getElementById('formDate').value = b.date;
+            document.getElementById('formStart').value = b.startTime;
+            document.getElementById('formEnd').value = b.endTime;
+            document.getElementById('formDuration').value = b.duration;
+            document.getElementById('formPeople').value = b.people;
+            document.getElementById('formName').value = b.name;
+            document.getElementById('formPurpose').value = b.purpose;
+            updateFormPrice();
+        }
+
+        function showBookingDetail(b) {
+            alert(`予約詳細\n日付: ${b.date}\n時間: ${b.startTime}-${b.endTime} (${b.duration}h)\n人数: ${b.people}人\n予約者: ${b.name}\n用途: ${b.purpose || 'なし'}\n料金: ¥${b.price.toLocaleString()}`);
+        }
+
+        function updateMonthlySummary() {
+            const now = new Date();
+            const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const monthly = bookings.filter(b => b.date.startsWith(month));
+            const total = monthly.reduce((s, b) => s + b.price, 0);
+            const avg = monthly.length > 0 ? Math.round(total / monthly.length) : 0;
+            document.getElementById('statMonthlyTotal').textContent = '¥' + total.toLocaleString();
+            document.getElementById('statMonthlyCount').textContent = monthly.length + '件';
+            document.getElementById('statAvgPrice').textContent = '¥' + avg.toLocaleString();
+        }
+
+        function updateAnalytics() {
+            const type = document.getElementById('analyticsType').value;
+            const start = document.getElementById('analyticStart').value;
+            const end = document.getElementById('analyticEnd').value;
+
+            let filtered = [...bookings];
+            if (start) filtered = filtered.filter(b => b.date >= start);
+            if (end) filtered = filtered.filter(b => b.date <= end);
+
+            const results = {};
+            let total = 0, count = 0;
+
+            if (type === 'user') {
+                filtered.forEach(b => {
+                    if (!results[b.name]) results[b.name] = 0;
+                    results[b.name] += b.price;
+                });
+            } else if (type === 'day') {
+                const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+                filtered.forEach(b => {
+                    const day = dayNames[new Date(b.date).getDay()];
+                    if (!results[day]) results[day] = 0;
+                    results[day] += b.price;
+                });
+            } else if (type === 'date') {
+                filtered.forEach(b => {
+                    if (!results[b.date]) results[b.date] = 0;
+                    results[b.date] += b.price;
+                });
+            } else if (type === 'week') {
+                filtered.forEach(b => {
+                    const d = new Date(b.date);
+                    const week = d.toISOString().split('T')[0];
+                    if (!results[week]) results[week] = 0;
+                    results[week] += b.price;
+                });
+            } else if (type === 'month') {
+                filtered.forEach(b => {
+                    const m = b.date.slice(0, 7);
+                    if (!results[m]) results[m] = 0;
+                    results[m] += b.price;
+                });
+            }
+
+            filtered.forEach(b => {
+                total += b.price;
+                count++;
+            });
+
+            document.getElementById('analyticTotal').textContent = '¥' + total.toLocaleString();
+            document.getElementById('analyticCount').textContent = count + '件';
+
+            const html = Object.entries(results)
+                .sort((a, b) => b[1] - a[1])
+                .map(([label, value]) => `
+                    <div class="stat-card">
+                        <div class="stat-label">${label}</div>
+                        <div class="stat-value">¥${value.toLocaleString()}</div>
+                    </div>
+                `).join('');
+            document.getElementById('analyticsResults').innerHTML = html || '<p class="no-data">データなし</p>';
+        }
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('quickDate').value = today;
+            document.getElementById('formDate').value = today;
+        }
+
+        function setQuickDate(dateStr) {
+            document.getElementById('quickDate').value = dateStr;
+        }
+
+        function clearQuickForm() {
+            document.getElementById('quickDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('quickStart').value = '';
+            document.getElementById('quickEnd').value = '';
+            document.getElementById('quickPeople').value = '';
+            document.getElementById('quickName').value = '';
+            document.getElementById('quickPurpose').value = '';
+            document.getElementById('quickSpecialPrice').value = '';
+            document.getElementById('quickWarning').innerHTML = '';
+            document.getElementById('quickPriceDisplay').textContent = '¥0';
+        }
+
+        function clearDetailForm() {
+            editingBookingId = null;
+            document.getElementById('editModeBanner').classList.remove('active');
+            document.getElementById('formSubmitBtn').textContent = '✓ 追加';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            document.getElementById('formDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('formStart').value = '';
+            document.getElementById('formEnd').value = '';
+            document.getElementById('formDuration').value = '';
+            document.getElementById('formPeople').value = '';
+            document.getElementById('formName').value = '';
+            document.getElementById('formPurpose').value = '';
+            document.getElementById('formSpecialPrice').value = '';
+            document.getElementById('formPriceDisplay').textContent = '¥0';
+            document.getElementById('formWarning').innerHTML = '';
+        }
+
+        function exportCSV() {
+            if (bookings.length === 0) {
+                alert('エクスポートするデータがありません');
+                return;
+            }
+            let csv = '日付,開始時刻,終了時刻,使用時間,人数,予約者,用途,料金\n';
+            bookings.forEach(b => {
+                csv += `${b.date},${b.startTime || ''},${b.endTime || ''},${b.duration},${b.people},"${b.name}","${b.purpose || ''}",${b.price}\n`;
+            });
+            downloadFile(csv, 'studio-bookings-' + new Date().toISOString().split('T')[0] + '.csv', 'text/csv');
+        }
+
+        function exportJSON() {
+            if (bookings.length === 0) {
+                alert('エクスポートするデータがありません');
+                return;
+            }
+            const json = JSON.stringify(bookings, null, 2);
+            downloadFile(json, 'studio-bookings-' + new Date().toISOString().split('T')[0] + '.json', 'application/json');
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function triggerImport() {
+            document.getElementById('importFile').click();
+        }
+
+        function handleImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (Array.isArray(data)) {
+                        bookings = data;
+                        updateBookingList();
+                        renderCalendar();
+                        alert('✓ インポートしました');
+                    } else {
+                        alert('無効なデータ形式です');
+                    }
+                } catch (e) {
+                    alert('ファイルが読み込めません');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllData() {
+            if (confirm('本当にすべてのデータを削除しますか？\nこの操作は戻せません。')) {
+                bookings = [];
+                updateBookingList();
+                renderCalendar();
+            }
+        }
+
+        init();
+    </script>
 </body>
 </html>
