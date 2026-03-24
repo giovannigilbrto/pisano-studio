@@ -563,6 +563,10 @@
             </tbody>
           </table>
         </div>
+        <div class="month-nav" style="margin-top:8px; justify-content:flex-end; gap:8px;">
+          <button class="btn-secondary btn-small" id="listPrevMonthBottomBtn">◀ 前月</button>
+          <button class="btn-secondary btn-small" id="listNextMonthBottomBtn">次月 ▶</button>
+        </div>
       </div>
     </div>
 
@@ -638,6 +642,7 @@
               <option value="day">曜日ごと</option>
                             <option value="week">週ごと</option>
               <option value="month">月ごと</option>
+              <option value="people">利用人数ごと</option>
             </select>
           </div>
           <div class="form-group">
@@ -906,6 +911,12 @@
           key = `${y}-${m}-${d} 週`;
         }
         else if (type === 'month') key = b.date.slice(0,7);
+        else if (type === 'people') {
+          const p = parseInt(b.people || 0, 10) || 0;
+          if (p >= 4) key = '4人以上';
+          else if (p > 0) key = `${p}人`;
+          else key = '人数不明';
+        }
 
         if (!groups[key]) groups[key] = 0;
         groups[key] += price;
@@ -965,6 +976,11 @@
           key = `${y}-${m}-${d} 週`;
         } else if (type === 'month') {
           key = b.date.slice(0,7);
+        } else if (type === 'people') {
+          const p = parseInt(b.people || 0, 10) || 0;
+          if (p >= 4) key = '4人以上';
+          else if (p > 0) key = `${p}人`;
+          else key = '人数不明';
         }
         if (key === label) {
           const timeStr = b.startTime ? `${b.duration || 0}h (${b.startTime}-${b.endTime})` : `${b.duration || 0}h`;
@@ -1631,6 +1647,8 @@
 
       const listPrev = document.getElementById('listPrevMonthBtn');
       const listNext = document.getElementById('listNextMonthBtn');
+      const listPrevBottom = document.getElementById('listPrevMonthBottomBtn');
+      const listNextBottom = document.getElementById('listNextMonthBottomBtn');
       if (listPrev) {
         listPrev.addEventListener('click', ()=>{
           listViewDate.setMonth(listViewDate.getMonth() - 1);
@@ -1639,6 +1657,18 @@
       }
       if (listNext) {
         listNext.addEventListener('click', ()=>{
+          listViewDate.setMonth(listViewDate.getMonth() + 1);
+          renderTables();
+        });
+      }
+      if (listPrevBottom) {
+        listPrevBottom.addEventListener('click', ()=>{
+          listViewDate.setMonth(listViewDate.getMonth() - 1);
+          renderTables();
+        });
+      }
+      if (listNextBottom) {
+        listNextBottom.addEventListener('click', ()=>{
           listViewDate.setMonth(listViewDate.getMonth() + 1);
           renderTables();
         });
